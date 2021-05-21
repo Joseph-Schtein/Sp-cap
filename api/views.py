@@ -1,3 +1,4 @@
+from django.core import serializers
 from django.shortcuts import render
 from datetime import timedelta
 from rest_framework import viewsets, status
@@ -7,11 +8,12 @@ from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from .models import Course, Course_group, Student, Ranking, Result, Office
+from django.core.serializers import serialize
 from django.contrib.auth.models import User
 from rest_framework.authtoken.models import Token
 from .serializers import CourseSerializer, Course_groupSerializer, Course_groupMiniSerializer, StudentSerializer, \
     RankingSerializer, ResultSerializer, UserSerializer, OfficeSerializer, RankingMiniSerializer
-
+from api.SP_algorithm.main import main
 
 # take second element for sort
 def take_score(elem):
@@ -158,6 +160,20 @@ class OfficeViewSet(viewsets.ModelViewSet):
     serializer_class = OfficeSerializer
     authentication_classes = (TokenAuthentication,)
     permission_classes = (IsAuthenticated,)
+
+    @action(detail=False, methods=['GET'])
+    def algo(self, request):
+        user = request.user
+        office = Office.objects.get(user=user)
+        student_set = Student.objects.filter(office=office)
+        student_serializer = StudentSerializer(student_set, many=True)
+        course_set = Course_group.objects.filter(office=office)
+        course_serializer = Course_groupSerializer(course_set, many=True)
+        ranking_set = Ranking.objects.filter(student__office=office)
+        ranking_serializer = RankingSerializer(ranking_set, many=True)
+        main(student_serializer.data, course_serializer.data, ranking_serializer.data)
+        return Response("OK", status=status.HTTP_200_OK)
+
 
     @action(detail=False, methods=['GET'])
     def get_time(self, request):
