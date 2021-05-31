@@ -440,6 +440,16 @@ def main(raw_student_list, raw_course_list, raw_rank_list):
 
     for index in range(num_offices):
         algorithm(fixed, set_of_offices_students[index], set_of_offices_elective_courses[index], set_of_offices_mandatory_courses)
+
+    for office in set_of_offices_students:
+        for i in office:
+            i.to_string()
+            print()
+
+    for office in set_of_offices_elective_courses:
+        for i in office:
+            i.to_string()
+            print()
     #row_number = len(ranking)
     #column_number = len(ranking[0])
     #fixed = create_matrix(ranking, courses, row_number, column_number)

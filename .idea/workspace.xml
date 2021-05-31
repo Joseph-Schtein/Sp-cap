@@ -1,8 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="ce84151e-6b6b-4610-885f-3e48bcc74a40" name="Default Changelist" comment="need to change second phase">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+    <list default="true" id="ce84151e-6b6b-4610-885f-3e48bcc74a40" name="Default Changelist" comment="remove while loop from second phase">
       <change beforePath="$PROJECT_DIR$/cap-backend-main/api/SP_algorithm/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/cap-backend-main/api/SP_algorithm/main.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -103,7 +102,14 @@
       <option name="project" value="LOCAL" />
       <updated>1622473666502</updated>
     </task>
-    <option name="localTasksCounter" value="4" />
+    <task id="LOCAL-00004" summary="remove while loop from second phase">
+      <created>1622482973474</created>
+      <option name="number" value="00004" />
+      <option name="presentableId" value="LOCAL-00004" />
+      <option name="project" value="LOCAL" />
+      <updated>1622482973474</updated>
+    </task>
+    <option name="localTasksCounter" value="5" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -123,7 +129,8 @@
     <MESSAGE value="working for now" />
     <MESSAGE value="enroll student work need to fix second phase" />
     <MESSAGE value="need to change second phase" />
-    <option name="LAST_COMMIT_MESSAGE" value="need to change second phase" />
+    <MESSAGE value="remove while loop from second phase" />
+    <option name="LAST_COMMIT_MESSAGE" value="remove while loop from second phase" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
