@@ -1,5 +1,4 @@
-import copy
-
+from copy import deepcopy
 
 def check_budget(order):
     sum_bidding = 0
@@ -23,7 +22,7 @@ def create_ordinal_order(order):
         ordinal[ind] = count
         count += 1
 
-    output = copy.deepcopy(order)
+    output = deepcopy(order)
     for i in range(len(output)):
         output[course_names[i]] = ordinal[i]
 
@@ -36,8 +35,8 @@ class Student:
         self.id = id
         self.need_to_enroll = need_number
         self.enrolled_num = 0
-        self.cardinal_order = cardinal
-        self.changeable_cardinal_order = cardinal
+        self.cardinal_order = deepcopy(cardinal)
+        self.changeable_cardinal_order = deepcopy(cardinal)
         self.enrolled_or_not = enrolled_or_not_enrolled
         self.ordinal_order = {}
         self.cardinal_utility = 0
@@ -60,6 +59,9 @@ class Student:
     def get_cardinal(self):
         return self.cardinal_order
 
+    def get_changeable_cardinal(self):
+        return self.changeable_cardinal_order
+
     def get_cardinal_utility(self):
         return self.cardinal_utility
 
@@ -75,7 +77,7 @@ class Student:
         index_first = names.index(sliced_name + ' 1')
         not_found = True
         while not_found:
-             if names[index_first][:-2] == sliced_name:
+             if index_first < len(names) and names[index_first][:-2] == sliced_name:
                 self.changeable_cardinal_order[names[index_first]] = 0
                 index_first += 1
 
