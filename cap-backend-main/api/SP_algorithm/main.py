@@ -76,14 +76,15 @@ def check_overlap(student_object, course_object):
         output = True
         enroll_status = student_object.get_enrolment_status()
         for overlap in range(len(overlap_courses)):
-            course_name = overlap_courses[overlap]
-            check = enroll_status[course_name.get_name()]
-            if check == 1:
-                student_object.get_next_preference()
-                if output:
-                    output = False
+            if output:
+                course_name = overlap_courses[overlap]
+                check = enroll_status[course_name.get_name()]
+                if check == 1:
+                    student_object.get_next_preference()
+                    if output:
+                        output = False
 
-        return output
+            return output
 
     else:
         return True
@@ -101,7 +102,7 @@ def ready_to_new_round(student_list, student_names, ranks):
     return _data
 
 
-def second_phase(ranks, student_list, elective_course_list, mandatory_course_list, round_number):
+def second_phase(ranks, student_list, elective_course_list, round_number):
     max_enrolled = 0
     need_to_enroll = [False for i in range(len(student_list))]
     for index in range(len(student_list)):
@@ -112,7 +113,7 @@ def second_phase(ranks, student_list, elective_course_list, mandatory_course_lis
         while need_to_enroll.count(True) != len(need_to_enroll):
             for index in range(len(need_to_enroll)):
                 if not ((student_list[index].have_another_preference()) or\
-                                        (student_list[index].get_number_of_enrollments() == round_number + 1) or\
+                                        (student_list[index].get_number_of_enrollments() == round_number ) or\
                                         (student_list[index].get_next_preference_without_change() == 0)):
                     need_to_enroll[index] = True
 
@@ -130,10 +131,10 @@ def second_phase(ranks, student_list, elective_course_list, mandatory_course_lis
             tmp_data = ready_to_new_round(tmp_student_list, tmp_student_names_list, tmp_ranks)
 
             if len(tmp_student_list) > 0:
-                enroll_students(tmp_data, tmp_student_list, elective_course_list, mandatory_course_list)
+                enroll_students(tmp_data, tmp_student_list, elective_course_list)
             for index in range(len(student_list)):
                 if student_list[index].get_number_of_enrollments() or\
-                                student_list[index].get_number_of_enrollments() == round_number + 1 or\
+                                student_list[index].get_number_of_enrollments() == round_number  or\
                                 student_list[index].get_next_preference_without_change() == 0:
                     need_to_enroll[index] = False
 
@@ -142,12 +143,11 @@ def second_phase(ranks, student_list, elective_course_list, mandatory_course_lis
                     need_to_enroll[index] = True
 
 
-    elif enroll_list.count(max_enrolled) == len(enroll_list) and round_number < max_enrolled:
-        #while enroll_list.count(max_enrolled) == len(enroll_list) and round_number < max_enrolled:
-
-        for stu in range(len(student_list)):
-            _data[student_list[stu].get_id()] = student_list[stu].get_next_preference()
-        enroll_students(_data, student_list, elective_course_list, mandatory_course_list)
+    elif need_to_enroll.count(True) == len(need_to_enroll) and round_number < max_enrolled:
+        while enroll_list.count(max_enrolled) == len(enroll_list) and round_number  < max_enrolled:
+            for stu in range(len(student_list)):
+                _data[student_list[stu].get_id()] = student_list[stu].get_next_preference()
+            enroll_students(_data, student_list, elective_course_list)
 
 
 
@@ -173,14 +173,13 @@ def sort_tie_breaker(student_object_try, check, course_name):
         min_index = check.index(i)
         max_index = len(check) - check[::-1].index(i) - 1    # sort other way around and find the index of the element i
         tie_student = student_object_try[min_index:max_index+1]
-        fixed_tie_student = sorted(tie_student, key=lambda x: x.current_highest_ordinal(course_name))
+        fixed_tie_student = sorted(tie_student, key=lambda x: (x.get_number_of_enrollments(), x.current_highest_ordinal(course_name)))
         student_object_try[min_index:max_index] = fixed_tie_student
 
 
-def enroll_students(_data, student_list, elective_course_list, mandatory_course_list):
+def enroll_students(_data, student_list, elective_course_list):
     amount_of_bidrs = {}
     student_element = {}
-    course_list = elective_course_list + mandatory_course_list
     for co in elective_course_list:
         amount_of_bidrs[co.get_name()] = []
         student_element[co.get_name()] = []
@@ -264,7 +263,7 @@ def enroll_students(_data, student_list, elective_course_list, mandatory_course_
                         else:   # In case there is a tie between student bids we break the tie by there ordinal order
                             sort_tie_breaker(student_object_try, check, elective_course_list[j].get_name())
                             for stu in range(len(student_object_try)):
-                                if elective_course_list[j].get_capacity() > 0 and check_overlap(student_object_try[stu], course_list[j]):
+                                if elective_course_list[j].get_capacity() > 0 and check_overlap(student_object_try[stu], elective_course_list[j]):
 
                                     # If there is a place to enroll student stu
                                     elective_course_list[j].student_enrollment(student_object_try[stu].get_id(),
@@ -285,14 +284,14 @@ def enroll_students(_data, student_list, elective_course_list, mandatory_course_
 
 
 
-def algorithm(fixed, student_list, elective_course_list, mandatory_course_list ,rounds=5):
+def algorithm(fixed, student_list, elective_course_list ,rounds=5):
     student_names = list(fixed[0].keys())
     ranks = list(fixed[0].values())
-    for i in range(rounds):
+    for i in range(1, rounds + 1):
         print(i)
         round_data = ready_to_new_round(student_list, student_names, ranks)
-        enroll_students(round_data, student_list, elective_course_list, mandatory_course_list)
-        second_phase(ranks, student_list, elective_course_list, mandatory_course_list, i)
+        enroll_students(round_data, student_list, elective_course_list)
+        second_phase(ranks, student_list, elective_course_list, i)
 
 
 
@@ -444,7 +443,7 @@ def main(raw_student_list, raw_course_list, raw_rank_list):
         fixed.append(tmp)
 
     for index in range(num_offices):
-        algorithm(fixed, set_of_offices_students[index], set_of_offices_elective_courses[index], set_of_offices_mandatory_courses)
+        algorithm(fixed, set_of_offices_students[index], set_of_offices_elective_courses[index])
 
     for office in set_of_offices_students:
         for i in office:
