@@ -9,7 +9,7 @@ class Course:
         self.maximal_capacity = capacity_bounds + 5
         self.capacity = capacity_bounds
         self.students = []
-        self.overlap = overlap_courses
+        self.overlap = set(overlap_courses)
         self.lowest_bid = 0
         self.start = start_time
         self.end = end_time

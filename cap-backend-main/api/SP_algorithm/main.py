@@ -161,7 +161,7 @@ def there_is_a_tie(student_object):
             start_end[index+1] = counter
 
         elif student_object[index].get_current_highest_bid() != student_object[index+1].get_current_highest_bid()\
-                and student_object[index] != 0:
+                and start_end[index] != 0:
             counter += 1
 
     return start_end
@@ -285,7 +285,7 @@ def enroll_students(_data, student_list, elective_course_list, mandatory_course_
 
 
 
-def algorithm(fixed, student_list, elective_course_list, mandatory_course_list ,rounds=4):
+def algorithm(fixed, student_list, elective_course_list, mandatory_course_list ,rounds=5):
     student_names = list(fixed[0].keys())
     ranks = list(fixed[0].values())
     for i in range(rounds):
@@ -350,10 +350,10 @@ def overlap_course(course_list):
                         if course_list[j].get_start() <= course_list[i].get_start() < course_list[j].get_end():
                             overlap_list_for_i.append(course_list[j])
 
-                        if course_list[j].get_start() < course_list[i].get_end() <= course_list[j].get_end():
+                        elif course_list[j].get_start() < course_list[i].get_end() <= course_list[j].get_end():
                             overlap_list_for_i.append(course_list[j])
 
-                        if course_list[j].get_start() == course_list[i].get_start() and \
+                        elif course_list[j].get_start() == course_list[i].get_start() and \
                                 course_list[i].get_end() == course_list[j].get_end():
                             overlap_list_for_i.append(course_list[j])
 
