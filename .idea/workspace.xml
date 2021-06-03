@@ -2,6 +2,7 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="ce84151e-6b6b-4610-885f-3e48bcc74a40" name="Default Changelist" comment="remove while loop from second phase">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/cap-backend-main/api/SP_algorithm/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/cap-backend-main/api/SP_algorithm/main.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -109,7 +110,14 @@
       <option name="project" value="LOCAL" />
       <updated>1622482973474</updated>
     </task>
-    <option name="localTasksCounter" value="5" />
+    <task id="LOCAL-00005" summary="remove while loop from second phase">
+      <created>1622484812639</created>
+      <option name="number" value="00005" />
+      <option name="presentableId" value="LOCAL-00005" />
+      <option name="project" value="LOCAL" />
+      <updated>1622484812639</updated>
+    </task>
+    <option name="localTasksCounter" value="6" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -137,18 +145,8 @@
       <breakpoints>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/cap-backend-main/api/SP_algorithm/main.py</url>
-          <line>133</line>
-          <option name="timeStamp" value="90" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/cap-backend-main/api/SP_algorithm/main.py</url>
-          <line>119</line>
-          <option name="timeStamp" value="94" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/cap-backend-main/api/SP_algorithm/main.py</url>
-          <line>130</line>
-          <option name="timeStamp" value="95" />
+          <line>111</line>
+          <option name="timeStamp" value="112" />
         </line-breakpoint>
       </breakpoints>
     </breakpoint-manager>
@@ -171,6 +169,9 @@
         <watch expression="student_list[8]" />
         <watch expression="__py_debug_temp_var_1653443220" />
         <watch expression="student_element" />
+        <watch expression="student_list[4]" />
+        <watch expression="need_to_enroll[5]" />
+        <watch expression="need_to_enroll[32]" />
       </configuration>
     </watches-manager>
   </component>

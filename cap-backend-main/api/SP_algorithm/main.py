@@ -104,38 +104,43 @@ def ready_to_new_round(student_list, student_names, ranks):
 def second_phase(ranks, student_list, elective_course_list, mandatory_course_list, round_number):
     max_enrolled = 0
     need_to_enroll = [False for i in range(len(student_list))]
-    enroll_list = [0 for i in range(len(student_list))]
     for index in range(len(student_list)):
         if max_enrolled < student_list[index].get_number_of_enrollments():
             max_enrolled = student_list[index].get_number_of_enrollments()
-        enroll_list[index] = student_list[index].get_number_of_enrollments()
 
-    if enroll_list.count(max_enrolled) != len(enroll_list):
-        #while enroll_list.count(max_enrolled) != len(enroll_list) and need_to_enroll.count(True) != len(need_to_enroll):
-        for index in range(len(need_to_enroll)):
-            need_to_enroll[index] = (student_list[index].have_another_preference()) or\
-                                    (student_list[index].get_number_of_enrollments() == (round_number + 1)) or\
-                                    (student_list[index].get_next_preference_without_change() == 0)
+    if need_to_enroll.count(True) != len(need_to_enroll):
+        while need_to_enroll.count(True) != len(need_to_enroll):
+            for index in range(len(need_to_enroll)):
+                if not ((student_list[index].have_another_preference()) or\
+                                        (student_list[index].get_number_of_enrollments() == round_number + 1) or\
+                                        (student_list[index].get_next_preference_without_change() == 0)):
+                    need_to_enroll[index] = True
 
-        tmp_student_list = []
-        tmp_student_names_list = []
-        tmp_ranks = []
+            tmp_student_list = []
+            tmp_student_names_list = []
+            tmp_ranks = []
 
 
-        for stu in range(len(student_list)):
-            if student_list[stu].get_number_of_enrollments() < max_enrolled and need_to_enroll[stu] > 0:
-                tmp_student_list.append(student_list[stu])
-                tmp_student_names_list.append(student_list[stu].get_id())
-                tmp_ranks.append(ranks[stu])
+            for stu in range(len(student_list)):
+                if student_list[stu].get_number_of_enrollments() < max_enrolled and need_to_enroll[stu] == True:
+                    tmp_student_list.append(student_list[stu])
+                    tmp_student_names_list.append(student_list[stu].get_id())
+                    tmp_ranks.append(ranks[stu])
 
-        tmp_data = ready_to_new_round(tmp_student_list, tmp_student_names_list, tmp_ranks)
+            tmp_data = ready_to_new_round(tmp_student_list, tmp_student_names_list, tmp_ranks)
 
-        if len(tmp_student_list) > 0:
-            enroll_students(tmp_data, tmp_student_list, elective_course_list, mandatory_course_list)
-        for index in range(len(student_list)):
-            enroll_list[index] = student_list[index].get_number_of_enrollments() or\
-                                    student_list[index].get_number_of_enrollments() == round_number or\
-                                    student_list[index].get_next_preference_without_change() == 0
+            if len(tmp_student_list) > 0:
+                enroll_students(tmp_data, tmp_student_list, elective_course_list, mandatory_course_list)
+            for index in range(len(student_list)):
+                if student_list[index].get_number_of_enrollments() or\
+                                student_list[index].get_number_of_enrollments() == round_number + 1 or\
+                                student_list[index].get_next_preference_without_change() == 0:
+                    need_to_enroll[index] = False
+
+            if need_to_enroll.count(False) == len(need_to_enroll):
+                for index in range(len(student_list)):
+                    need_to_enroll[index] = True
+
 
     elif enroll_list.count(max_enrolled) == len(enroll_list) and round_number < max_enrolled:
         #while enroll_list.count(max_enrolled) == len(enroll_list) and round_number < max_enrolled:
@@ -280,7 +285,7 @@ def enroll_students(_data, student_list, elective_course_list, mandatory_course_
 
 
 
-def algorithm(fixed, student_list, elective_course_list, mandatory_course_list ,rounds=5):
+def algorithm(fixed, student_list, elective_course_list, mandatory_course_list ,rounds=4):
     student_names = list(fixed[0].keys())
     ranks = list(fixed[0].values())
     for i in range(rounds):
