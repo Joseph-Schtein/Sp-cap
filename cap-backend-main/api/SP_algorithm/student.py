@@ -38,13 +38,11 @@ class Student:
         self.cardinal_order = deepcopy(cardinal)
         self.changeable_cardinal_order = deepcopy(cardinal)
         self.enrolled_or_not = enrolled_or_not_enrolled
-        self.ordinal_order = {}
+        self.ordinal_order = create_ordinal_order(self.cardinal_order)
         self.cardinal_utility = 0
         self.ordinal_utility = 0
         self.enrolled_first_phase = False
         self.office = student_office
-        #if check_budget(self.cardinal_order):
-        self.ordinal_order = create_ordinal_order(self.cardinal_order)
 
 
     def get_id(self):
@@ -152,4 +150,5 @@ class Student:
     def to_string(self):
         print("Student id:", self.id, ", The cardinal order is: ", self.cardinal_order, "\n"  "The ordinal is: ",
               self.ordinal_order, "\n", "The courses that: ", self.id, " enrolled are: ", self.enrolled_or_not, "\n"
-              "The cardinal utility is: ", self.cardinal_utility, ", The ordinal utility is: ", self.ordinal_utility)
+              "The cardinal utility is: ", self.cardinal_utility, ", The ordinal utility is: ", self.ordinal_utility, "\n"
+              "and enrolled to: ", self.enrolled_num, "courses")
