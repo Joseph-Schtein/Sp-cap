@@ -208,32 +208,28 @@ def enroll_students(_data, student_list, elective_course_list):
 
 
                                 else:  # If the student enrolled already to overlap course over course_list[j]
-                                    counter = 0
                                     #gap = elective_course_list[j].get_lowest_bid() - \
                                     #      student_object_try[need_to].get_current_highest_bid()
 
                                     #student_object_try[need_to].add_gap(gap)
 
-                                    _data[try_to_enroll[counter]] = \
+                                    _data[try_to_enroll[need_to]] = \
                                         student_object_try[need_to].get_next_preference_without_change()
-                                    counter += 1
 
 
                     elif elective_course_list[j].get_capacity() == 0:  # If the capacity is zero
                         counter = 0
                         for stu in range(len(student_object_try)):
-                            if len(try_to_enroll) > counter:
-                                if student_object_try[stu].get_id() == try_to_enroll[counter]:
-                                    if student_object_try[stu].get_need_to_enroll() != 0:
+                            if student_object_try[stu].get_need_to_enroll() != 0:
 
                                         #gap = elective_course_list[j].get_lowest_bid() - \
                                         #      student_object_try[stu].get_current_highest_bid()
 
                                         #student_object_try[stu].add_gap(gap)
 
-                                        _data[try_to_enroll[counter]] = \
-                                            student_object_try[stu].get_next_preference_without_change()
-                                        counter += 1
+                                _data[try_to_enroll[counter]] = \
+                                    student_object_try[stu].get_next_preference_without_change()
+                                counter += 1
 
 
                     elif not elective_course_list[j].can_be_enroll(len(try_to_enroll)):
