@@ -94,7 +94,7 @@ def ready_to_new_round(student_list, student_names, ranks):
     return _data
 
 
-def second_phase(ranks, student_list, elective_course_list, round_number):
+def second_phase(ranks, student_list, elective_course_list, round_number, group_course):
     max_enrolled = 0
     need_to_enroll = [False for i in range(len(student_list))]
     for index in range(len(student_list)):
@@ -123,7 +123,7 @@ def second_phase(ranks, student_list, elective_course_list, round_number):
             tmp_data = ready_to_new_round(tmp_student_list, tmp_student_names_list, tmp_ranks)
 
             if len(tmp_student_list) > 0:
-                enroll_students(tmp_data, tmp_student_list, elective_course_list)
+                enroll_students(tmp_data, tmp_student_list, elective_course_list, group_course)
             for index in range(len(student_list)):
                 if student_list[index].get_number_of_enrollments() or\
                                 student_list[index].get_number_of_enrollments() == round_number  or\
@@ -139,7 +139,7 @@ def second_phase(ranks, student_list, elective_course_list, round_number):
         while enroll_list.count(max_enrolled) == len(enroll_list) and round_number  < max_enrolled:
             for stu in range(len(student_list)):
                 _data[student_list[stu].get_id()] = student_list[stu].get_next_preference()
-            enroll_students(_data, student_list, elective_course_list)
+            enroll_students(_data, student_list, elective_course_list, group_course)
 
 
 
@@ -169,7 +169,7 @@ def sort_tie_breaker(student_object_try, check, course_name):
         student_object_try[min_index:max_index] = fixed_tie_student
 
 
-def enroll_students(_data, student_list, elective_course_list):
+def enroll_students(_data, student_list, elective_course_list, group_course):
     amount_of_bidrs = {}
     student_element = {}
     for co in elective_course_list:
@@ -189,6 +189,10 @@ def enroll_students(_data, student_list, elective_course_list):
         if len(value) > 0:
             try_to_enroll = amount_of_bidrs[key]
             student_object_try = student_element[key]
+
+
+
+
             if key == elective_course_list[j].get_name():
                 if elective_course_list[j].can_be_enroll(len(try_to_enroll)):
                     if len(try_to_enroll) > 0:  # when we can enroll everyone
@@ -272,14 +276,14 @@ def enroll_students(_data, student_list, elective_course_list):
 
 
 
-def algorithm(fixed, student_list, elective_course_list ,rounds=5):
+def algorithm(fixed, student_list, elective_course_list ,group_course ,rounds=5):
     student_names = list(fixed[0].keys())
     ranks = list(fixed[0].values())
     for i in range(1, rounds + 1):
         print(i)
         round_data = ready_to_new_round(student_list, student_names, ranks)
-        enroll_students(round_data, student_list, elective_course_list)
-        second_phase(ranks, student_list, elective_course_list, i)
+        enroll_students(round_data, student_list, elective_course_list, group_course)
+        second_phase(ranks, student_list, elective_course_list, i, group_course)
 
 
 
@@ -420,6 +424,8 @@ def main(raw_student_list, raw_course_list, raw_rank_list):
     set_of_offices_students = order_student_data(raw_student_list, raw_rank_list, set_of_offices_elective_courses,
                                                  set_of_offices_mandatory_courses, num_offices)
 
+    set_of_office_group = sort_by_office_courses(course_group_list, num_offices)
+
 
     fixed = []
     dic = {}
@@ -431,7 +437,7 @@ def main(raw_student_list, raw_course_list, raw_rank_list):
         fixed.append(tmp)
 
     for index in range(num_offices):
-        algorithm(fixed, set_of_offices_students[index], set_of_offices_elective_courses[index])
+        algorithm(fixed, set_of_offices_students[index], set_of_offices_elective_courses[index], set_of_office_group[index])
 
     for office in set_of_offices_students:
         for i in office:

@@ -1,10 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="ce84151e-6b6b-4610-885f-3e48bcc74a40" name="Default Changelist" comment="before adding try to enroll to">
+    <list default="true" id="ce84151e-6b6b-4610-885f-3e48bcc74a40" name="Default Changelist" comment="removing for loop pass on all the courses">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/cap-backend-main/api/SP_algorithm/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/cap-backend-main/api/SP_algorithm/main.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/cap-backend-main/api/SP_algorithm/student.py" beforeDir="false" afterPath="$PROJECT_DIR$/cap-backend-main/api/SP_algorithm/student.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -146,7 +145,14 @@
       <option name="project" value="LOCAL" />
       <updated>1622721598817</updated>
     </task>
-    <option name="localTasksCounter" value="10" />
+    <task id="LOCAL-00010" summary="removing for loop pass on all the courses">
+      <created>1622747437366</created>
+      <option name="number" value="00010" />
+      <option name="presentableId" value="LOCAL-00010" />
+      <option name="project" value="LOCAL" />
+      <updated>1622747437366</updated>
+    </task>
+    <option name="localTasksCounter" value="11" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -170,20 +176,26 @@
     <MESSAGE value="return the while loop" />
     <MESSAGE value="fix tie breaker" />
     <MESSAGE value="before adding try to enroll to other function" />
-    <option name="LAST_COMMIT_MESSAGE" value="before adding try to enroll to other function" />
+    <MESSAGE value="removing for loop pass on all the courses" />
+    <option name="LAST_COMMIT_MESSAGE" value="removing for loop pass on all the courses" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
       <breakpoints>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/cap-backend-main/api/SP_algorithm/main.py</url>
-          <line>246</line>
+          <line>250</line>
           <option name="timeStamp" value="114" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/cap-backend-main/api/SP_algorithm/main.py</url>
           <line>78</line>
           <option name="timeStamp" value="120" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/cap-backend-main/api/SP_algorithm/main.py</url>
+          <line>426</line>
+          <option name="timeStamp" value="131" />
         </line-breakpoint>
       </breakpoints>
     </breakpoint-manager>
