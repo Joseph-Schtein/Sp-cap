@@ -1,9 +1,10 @@
 from copy import deepcopy
 
-class Course:
+class OOPCourse:
 
-    def __init__(self, id_num, course_name, capacity_bounds, start_time, end_time, semester, day, lec, overlap_courses=[]):
+    def __init__(self, id_num, id_g, course_name, capacity_bounds, start_time, end_time, semester, day, lec, office_num, elect, overlap_courses=[]):
         self.id = id_num
+        self.id_group = id_g
         self.name = course_name
         self.maximal_capacity = capacity_bounds + 5
         self.capacity = capacity_bounds
@@ -15,9 +16,11 @@ class Course:
         self.sem = semester
         self.d = day
         self.lecturer = lec
+        self.office = office_num
+        self.elective = elect
 
     def student_enrollment(self, student_name, student_element):
-        if self.capacity > 0 and student_name not in self.students and student_element.get_need_to_enroll():
+        if self.capacity > 0 and student_name not in self.students and student_element.get_need_to_enroll() > 0:
             self.capacity -= 1
             self.maximal_capacity -= 1
             self.students.append(student_name)
@@ -31,10 +34,19 @@ class Course:
         return self.capacity >= number_of_students
 
     def set_overlap(self, overlap_list):
-        self.overlap = set(deepcopy(overlap_list))
+        self.overlap = deepcopy(overlap_list)
 
     def get_id(self):
         return self.id
+
+    def get_id_group(self):
+        return self.id_group
+
+    def get_office(self):
+        return self.office
+
+    def get_elective(self):
+        return self.elective
 
     def get_lowest_bid(self):
         return self.lowest_bid

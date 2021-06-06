@@ -1,5 +1,4 @@
-import copy
-
+from copy import deepcopy
 
 def check_budget(order):
     sum_bidding = 0
@@ -7,7 +6,7 @@ def check_budget(order):
     for i in range(len(order_values)):
         sum_bidding += order_values[i]
 
-    if sum_bidding > 500:
+    if sum_bidding > 1000:
         raise Exception("Sorry, the sum of bidding is can't be summarized above 500")
 
     else:
@@ -23,38 +22,43 @@ def create_ordinal_order(order):
         ordinal[ind] = count
         count += 1
 
-    output = copy.deepcopy(order)
+    output = deepcopy(order)
     for i in range(len(output)):
         output[course_names[i]] = ordinal[i]
 
     return output
 
 
-class Student:
+class OOPStudent:
 
-    def __init__(self, id, need_number , student_office,  cardinal_order, enrolled_or_not):
-        if check_budget(self.cardinal_order):
-            self.id = id
-            self.need_to_enroll = need_number
-            self.enrolled_num = 0
-            self.cardinal_order = copy.deepcopy(cardinal_order)
-            self.changeable_cardinal_order = cardinal_order
-            self.enrolled_or_not = enrolled_or_not
-            self.ordinal_order = {}
-            self.cardinal_utility = 0
-            self.ordinal_utility = 0
-            self.enrolled_first_phase = False
-            self.office = student_office
+    def __init__(self, id, need_number , student_office, enrolled_or_not_enrolled, cardinal):
+        self.id = id
+        self.need_to_enroll = need_number
+        self.enrolled_num = 0
+        self.cardinal_order = deepcopy(cardinal)
+        self.changeable_cardinal_order = deepcopy(cardinal)
+        self.enrolled_or_not = enrolled_or_not_enrolled
+        self.ordinal_order = create_ordinal_order(self.cardinal_order)
+        self.cardinal_utility = 0
+        self.ordinal_utility = 0
+        self.enrolled_first_phase = False
+        self.office = student_office
 
 
-    def get_name(self):
-        return self.name
+    def get_id(self):
+        return self.id
+
+    def get_office(self):
+        return self.office
 
     def get_ordinal(self):
         return self.ordinal_order
 
     def get_cardinal(self):
         return self.cardinal_order
+
+    def get_changeable_cardinal(self):
+        return self.changeable_cardinal_order
 
     def get_cardinal_utility(self):
         return self.cardinal_utility
@@ -64,6 +68,20 @@ class Student:
 
     def get_enrolment_status(self):
         return self.enrolled_or_not
+
+    def enrolled_to_other_option(self, course_name):
+        sliced_name = course_name[:-2]
+        names = list(self.changeable_cardinal_order.keys())
+        index_first = names.index(sliced_name + ' 1')
+        not_found = True
+        while not_found:
+             if index_first < len(names) and names[index_first][:-2] == sliced_name:
+                self.changeable_cardinal_order[names[index_first]] = 0
+                index_first += 1
+
+             else:
+                 not_found = False
+
 
     def get_next_preference(self):
         cardinal_value = list(self.changeable_cardinal_order.values())
@@ -121,14 +139,16 @@ class Student:
             self.enrolled_or_not[course_name] = 1
             self.enrolled_num += 1
             self.ordinal_utility += len(self.ordinal_order) - self.ordinal_order[course_name]+1
+            self.enrolled_to_other_option(course_name)
 
         elif self.enrolled_or_not[course_name] == 1:
-            print("Student: ", self.name, ", is already enrolled to the course: ", course_name)
+            print("Student: ", self.id, ", is already enrolled to the course: ", course_name)
 
         else:
-            print("Student: ", self.name, " got to the limit of courses enrollment")
+            print("Student: ", self.id, " got to the limit of courses enrollment")
 
     def to_string(self):
-        print("Student name:", self.name, ", The cardinal order is: ", self.cardinal_order, "\n"  "The ordinal is: ",
-              self.ordinal_order, "\n", "The courses that: ", self.name, " enrolled are: ", self.enrolled_or_not, "\n"
-              "The cardinal utility is: ", self.cardinal_utility, ", The ordinal utility is: ", self.ordinal_utility)
+        print("Student id:", self.id, ", The cardinal order is: ", self.cardinal_order, "\n"  "The ordinal is: ",
+              self.ordinal_order, "\n", "The courses that: ", self.id, " enrolled are: ", self.enrolled_or_not, "\n"
+              "The cardinal utility is: ", self.cardinal_utility, ", The ordinal utility is: ", self.ordinal_utility, "\n"
+              "and remaining courses that student need to enroll is : ", self.need_to_enroll)
