@@ -1,8 +1,10 @@
 from copy import deepcopy
+import logging
 
 class OOPCourse:
 
-    def __init__(self, id_num, id_g, course_name, capacity_bounds, start_time, end_time, semester, day, lec, office_num, elect, overlap_courses=[]):
+    def __init__(self, id_num, id_g, course_name, capacity_bounds, start_time, end_time, semester, day, lec,\
+                 office_num, elect, overlap_courses=[]):
         self.id = id_num
         self.id_group = id_g
         self.name = course_name
@@ -21,6 +23,7 @@ class OOPCourse:
 
     def student_enrollment(self, student_name, student_element):
         if self.capacity > 0 and student_name not in self.students and student_element.get_need_to_enroll() > 0:
+            logging.info("For course %s we enroll student with the ID %s", self.name, student_name)
             self.capacity -= 1
             self.maximal_capacity -= 1
             self.students.append(student_name)
@@ -28,7 +31,7 @@ class OOPCourse:
                 self.lowest_bid = student_element.get_current_highest_bid()
 
         else:
-            print("We can't enroll you to the course")
+            raise Exception("We can't enroll you to the course named", self.name)
 
     def can_be_enroll(self, number_of_students):
         return self.capacity >= number_of_students
