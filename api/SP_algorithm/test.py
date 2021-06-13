@@ -8,29 +8,29 @@ from copy import deepcopy, copy
 def check_overlap(student_object, course_object):
     """
     >>> student = OOPStudent(1, 5, 1, {'aa':0, 'ab': 1, 'ac': 0, 'ad': 0, 'ae': 1}, {'aa':10, 'ab': 20, 'ac': 30, 'ad': 40, 'ae': 1})
-    >>> course = OOPCourse(1, 2, 'aa', 5, '12:00:00', '15:00:00', 'a', 'Monday', 'l', 1, True, ['b', 'e'])
+    >>> course = OOPCourse(1, 2, 'aa', 5, '12:00:00', '15:00:00', 'a', 'Monday', 'l', 1, True)
     >>> overlap_tmp1 = OOPCourse(3, 5, 'ab', 5, '14:00:00', '17:00:00', 'b', 'Thursday', 'l', 1,\
-    True, [])
-    >>> overlap_tmp2 = OOPCourse(2, 4, 'ac', 5, '11:00:00', '13:00:00', 'a', 'sunday', 'l', 1,\
-    True, [])
-    >>> overlap_tmp3 = OOPCourse(5, 7, 'ad', 5, '12:00:00', '16:00:00', 'a', 'sunday', 'l', 1,\
-    True, [])
+True, [])
+    >>> overlap_tmp2 = OOPCourse(2, 4, 'ac', 5, '11:00:00', '13:00:00', 'a', 'Sunday', 'l', 1,\
+True, [])
+    >>> overlap_tmp3 = OOPCourse(5, 7, 'ad', 5, '12:00:00', '16:00:00', 'a', 'Sunday', 'l', 1,\
+True, [])
     >>> overlap_tmp4 = OOPCourse(3, 6, 'ae', 5, '12:00:00', '16:00:00', 'a', 'Wednesday', 'l', 1,\
-    True, [])
-    >>> course.set_overlap([])
+True, [])
+    >>> course.set_overlap([overlap_tmp1, overlap_tmp2, overlap_tmp3, overlap_tmp4])
     >>> check_overlap(student, course)
     True
 
     >>> student = OOPStudent(1, 5, 1, {'aa':0, 'ab': 1, 'ac': 0, 'ad': 0, 'ae': 1}, {'aa':10, 'ab': 20, 'ac': 30, 'ad': 40, 'ae': 1})
     >>> course = OOPCourse(1, 2, 'aa', 5, '12:00:00', '15:00:00', 'a', 'Monday', 'l', 1, True, [])
     >>> overlap_tmp1 = OOPCourse(3, 5, 'ab', 5, '14:00:00', '17:00:00', 'b', 'Thursday', 'l', 1,\
-    True, [])
+True, [])
     >>> overlap_tmp2 = OOPCourse(2, 4, 'ac', 5, '11:00:00', '13:00:00', 'a', 'Sunday', 'l', 1,\
-    True, [])
+True, [])
     >>> overlap_tmp3 = OOPCourse(5, 7, 'ad', 5, '12:00:00', '16:00:00', 'a', 'Sunday', 'l', 1,\
-    True, [])
+True, [])
     >>> overlap_tmp4 = OOPCourse(3, 6, 'ae', 5, '12:00:00', '14:00:00', 'a', 'Monday', 'l', 1,\
-    True, [course])
+True, [course])
     >>> course.set_overlap([overlap_tmp4])
     >>> check_overlap(student, course)
     False
@@ -191,6 +191,169 @@ OrderedDict([('id', 28), ('name', 'מבוא לקריפטוגרפיה'), ('is_ele
     return group_course_list, course_list_elective_output, course_list_mandatory_output, max_office
 
 
+def there_is_a_tie(students_object):
+    """
+      >>> student_list_tmp = [OOPStudent(1, 5, 1, {'aa':0, 'ab': 1, 'ac': 0, 'ad': 0, 'ae': 1}, {'aa':10, 'ab': 0, 'ac': 30, 'ad': 20, 'ae': 0}),\
+OOPStudent(2, 5, 1, {'aa':0, 'ab': 0, 'ac': 0, 'ad': 0, 'ae': 0}, {'aa':25, 'ab': 18, 'ac': 11, 'ad': 29, 'ae': 12}),\
+OOPStudent(2, 5, 1, {'aa':1, 'ab': 0, 'ac': 1, 'ad': 0, 'ae': 0}, {'aa':0, 'ab': 12, 'ac': 0, 'ad': 40, 'ae': 10})]
+    >>> there_is_a_tie(student_list_tmp)
+    [0, 0, 0]
+
+    >>> student_list_tmp = [OOPStudent(1, 5, 1, {'aa': 0, 'ab': 1, 'ac': 0, 'ad': 0, 'ae': 1},{'aa': 10, 'ab': 0, 'ac': 30, 'ad': 20, 'ae': 0}), \
+OOPStudent(2, 5, 1, {'aa': 0, 'ab': 0, 'ac': 0, 'ad': 0, 'ae': 0}, {'aa': 25, 'ab': 18, 'ac': 11, 'ad': 30, 'ae': 12}), \
+OOPStudent(2, 5, 1, {'aa': 1, 'ab': 0, 'ac': 1, 'ad': 0, 'ae': 0}, {'aa': 0, 'ab': 12, 'ac': 0, 'ad': 40, 'ae': 10})]
+    >>> there_is_a_tie(student_list_tmp)
+    [1, 1, 0]
+
+
+>>> student_list_tmp = [OOPStudent(1, 5, 1, {'aa': 0, 'ab': 1, 'ac': 0, 'ad': 0, 'ae': 1},{'aa': 10, 'ab': 0, 'ac': 30, 'ad': 20, 'ae': 0}), \
+OOPStudent(2, 5, 1, {'aa': 0, 'ab': 0, 'ac': 0, 'ad': 0, 'ae': 0}, {'aa': 25, 'ab': 18, 'ac': 11, 'ad': 30, 'ae': 12}), \
+OOPStudent(2, 5, 1, {'aa': 1, 'ab': 0, 'ac': 1, 'ad': 0, 'ae': 0}, {'aa': 0, 'ab': 12, 'ac': 0, 'ad': 30, 'ae': 10})]
+    >>> there_is_a_tie(student_list_tmp)
+    [1, 1, 1]
+
+    >>> student_list_tmp = [OOPStudent(1, 5, 1, {'aa': 0, 'ab': 1, 'ac': 0, 'ad': 0, 'ae': 1},{'aa': 10, 'ab': 0, 'ac': 20, 'ad': 30, 'ae': 0}), \
+OOPStudent(3, 5, 1, {'aa': 0, 'ab': 0, 'ac': 0, 'ad': 0, 'ae': 0}, {'aa': 25, 'ab': 18, 'ac': 11, 'ad': 30, 'ae': 12}), \
+OOPStudent(4, 5, 1, {'aa': 1, 'ab': 0, 'ac': 1, 'ad': 0, 'ae': 0}, {'aa': 0, 'ab': 12, 'ac': 0, 'ad': 35, 'ae': 10}),\
+OOPStudent(5, 5, 1, {'aa': 1, 'ab': 0, 'ac': 1, 'ad': 0, 'ae': 0}, {'aa': 0, 'ab': 12, 'ac': 0, 'ad': 35, 'ae': 10}),\
+OOPStudent(6, 5, 1, {'aa': 1, 'ab': 0, 'ac': 1, 'ad': 0, 'ae': 0}, {'aa': 0, 'ab': 12, 'ac': 0, 'ad': 40, 'ae': 10})]
+    >>> there_is_a_tie(student_list_tmp)
+    [1, 1, 2, 2, 0]
+    """
+    start_end = [0 for i in range(len(students_object))]
+    counter = 1
+    for index in range(len(students_object) - 1):
+        if students_object[index].get_current_highest_bid() == students_object[index + 1].get_current_highest_bid():
+            start_end[index] = counter
+            start_end[index + 1] = counter
+
+        elif students_object[index].get_current_highest_bid() != students_object[index + 1].get_current_highest_bid() \
+                and start_end[index] != 0:
+            counter += 1
+
+    return start_end
+
+
+def second_phase(student_object, elective_course_list, need_to_change, gap=0):
+    """
+    >>> student_tmp = OOPStudent(1, 5, 1, {'aa 1': 0, 'ab 1': 0, 'ac 1': 0, 'ad 1': 0, 'ae 1': 0},\
+{'aa 1': 10, 'ab 1': 40, 'ac 1': 20, 'ad 1': 30, 'ae 1': 0})
+    >>> courses = [OOPCourse(1, 10, 'aa 1', 30, '09:00:00', '11:00:00', 'a', 'monday',  'l', 1, True)]
+    >>> courses.append(OOPCourse(2, 7, 'ab 1', 25, '11:00:00', '14:00:00', 'b', 'Thursday',  'e', 1, True))
+    >>> courses.append(OOPCourse(3, 5, 'ac 1', 25, '10:00:00', '13:00:00', 'c', 'Thursday',  'r', 2, True))
+    >>> courses.append(OOPCourse(2, 7, 'ad 1', 25, '11:00:00', '14:00:00', 'b', 'Thursday',  'e', 1, True))
+    >>> courses.append(OOPCourse(3, 5, 'ae 1', 25, '10:00:00', '13:00:00', 'c', 'Thursday',  'r', 2, True))
+    >>> second_phase(student_tmp, courses, False)
+    >>> student_tmp.get_changeable_cardinal()
+    {'aa 1': 10, 'ab 1': 0, 'ac 1': 20, 'ad 1': 30, 'ae 1': 0}
+    >>> student_tmp.get_current_highest_bid()
+    30
+    """
+    need_to_enroll = True
+    tried = False
+    while need_to_enroll:
+
+        if need_to_change or tried:  # If we check overlap and there is we changed his bid to 0 and we not need to change to twice
+            student_object.add_gap(gap)
+            need_to_change = False
+
+        tried = True  # After the first try we will change the preference from the next round for updating for the next
+        # round of second phase
+        next_pref = student_object.get_next_preference()
+        next_key = list(next_pref.keys())
+
+        for j in range(len(elective_course_list)):
+            if elective_course_list[j].get_name() == next_key[0]:
+                if check_overlap(student_object, elective_course_list[j]):
+                    if elective_course_list[j].get_capacity() > 0:
+                        if student_object.get_need_to_enroll() > 0:
+                            elective_course_list[j].student_enrollment(student_object.get_id(), student_object)
+                            student_object.got_enrolled(elective_course_list[j].get_name())
+                            need_to_enroll = False  # The student have been enrolled so we can stop the loop and continue the algorithm
+
+        if student_object.get_current_highest_bid() == 0:  # If there is no other preference break the loop and back to
+            # enroll student function
+            break
+
+
+def sort_tie_breaker(student_object_try, check, course_name):
+    """
+    >>> student_list_tmp = [OOPStudent(1, 5, 1, {'aa': 0, 'ab': 0, 'ac': 0, 'ad': 0, 'ae': 0},{'aa': 10, 'ab': 0, 'ac': 20, 'ad': 30, 'ae': 0}),\
+OOPStudent(2, 5, 1, {'aa': 0, 'ab': 0, 'ac': 0, 'ad': 0, 'ae': 0}, {'aa': 25, 'ab': 0, 'ac': 0, 'ad': 30, 'ae': 12}),\
+OOPStudent(3, 5, 1, {'aa': 0, 'ab': 0, 'ac': 0, 'ad': 0, 'ae': 0}, {'aa': 0, 'ab': 12, 'ac': 0, 'ad': 40, 'ae': 10})]
+    >>> check_tmp = there_is_a_tie(student_list_tmp)
+    >>> student_list_tmp = sorted(student_list_tmp, key=lambda x: x.get_current_highest_bid(),reverse=True)
+    >>> sort_tie_breaker(student_list_tmp, check_tmp, 'ad')
+    >>> student_list_tmp[0].get_id()
+    3
+    >>> student_list_tmp[1].get_id()
+    1
+    >>> student_list_tmp[2].get_id()
+    2
+
+>>> student_list_tmp = [OOPStudent(1, 5, 1, {'aa 1': 0, 'ab 1': 0, 'ac 1': 0, 'ad 1': 0, 'ae 1': 0},{'aa 1': 10, 'ab 1': 35, 'ac 1': 20, 'ad 1': 30, 'ae 1': 15}), \
+OOPStudent(2, 5, 1, {'aa 1': 0, 'ab 1': 0, 'ac 1': 0, 'ad 1': 0, 'ae 1': 0}, {'aa 1': 25, 'ab 1': 18, 'ac 1': 11, 'ad 1': 30, 'ae 1': 12}), \
+OOPStudent(3, 5, 1, {'aa 1': 0, 'ab 1': 0, 'ac 1': 0, 'ad 1': 0, 'ae 1': 0}, {'aa 1': 40, 'ab 1': 12, 'ac 1': 0, 'ad 1': 35, 'ae 1': 10})]
+    >>> student_list_tmp[0].got_enrolled('ab 1')
+    >>> student_list_tmp[2].got_enrolled('aa 1')
+    >>> check_tmp = there_is_a_tie(student_list_tmp)
+    >>> check_tmp
+    [1, 1, 0]
+    >>> student_list_tmp = sorted(student_list_tmp, key=lambda x: x.get_current_highest_bid(),reverse=True)
+    >>> sort_tie_breaker(student_list_tmp, check_tmp, 'ad 1')
+    >>> len(student_list_tmp)
+    3
+    >>> student_list_tmp[0].get_id()
+    3
+    >>> student_list_tmp[1].get_id()
+    1
+    >>> student_list_tmp[2].get_id()
+    2
+
+
+    >>> student_list_tmp = [OOPStudent(1, 5, 1, {'aa 1': 0, 'ab 1': 0, 'ac 1': 0, 'ad 1': 0, 'ae 1': 0},{'aa 1': 40, 'ab 1': 7, 'ac 1': 30, 'ad 1': 20, 'ae 1': 13}), \
+OOPStudent(2, 5, 1, {'aa 1': 0, 'ab 1': 0, 'ac 1': 0, 'ad 1': 0, 'ae 1': 0}, {'aa 1': 35, 'ab 1': 18, 'ac 1': 45, 'ad 1': 30, 'ae 1': 12}), \
+OOPStudent(3, 5, 1, {'aa 1': 0, 'ab 1': 0, 'ac 1': 0, 'ad 1': 0, 'ae 1': 0}, {'aa 1': 20, 'ab 1': 12, 'ac 1': 37, 'ad 1': 35, 'ae 1': 16}),\
+OOPStudent(4, 5, 1, {'aa 1': 0, 'ab 1': 0, 'ac 1': 0, 'ad 1': 0, 'ae 1': 0}, {'aa 1': 19, 'ab 1': 12, 'ac 1': 27, 'ad 1': 35, 'ae 1': 36}),\
+OOPStudent(5, 5, 1, {'aa 1': 0, 'ab 1': 0, 'ac 1': 0, 'ad 1': 0, 'ae 1': 0}, {'aa 1': 23, 'ab 1': 39, 'ac 1': 12, 'ad 1': 40, 'ae 1': 23})]
+    >>> student_list_tmp[0].got_enrolled('aa 1')
+    >>> student_list_tmp[1].got_enrolled('ac 1')
+    >>> student_list_tmp[1].got_enrolled('aa 1')
+    >>> student_list_tmp[2].got_enrolled('ac 1')
+    >>> student_list_tmp[3].got_enrolled('ae 1')
+    >>> check_tmp = there_is_a_tie(student_list_tmp)
+    >>> check_tmp
+    [1, 1, 2, 2, 0]
+
+    >>> student_list_tmp = sorted(student_list_tmp, key=lambda x: x.get_current_highest_bid(),reverse=True)
+    >>> sort_tie_breaker(student_list_tmp, check_tmp, 'ad 1')
+    >>> len(student_list_tmp)
+    5
+    >>> student_list_tmp[0].get_id()
+    5
+    >>> student_list_tmp[1].get_id()
+    3
+    >>> student_list_tmp[2].get_id()
+    4
+    >>> student_list_tmp[3].get_id()
+    1
+    >>> student_list_tmp[4].get_id()
+    2
+    """
+
+    max_value = max(check)
+    for i in range(1, max_value + 1):
+        min_index = check.index(i)
+        max_index = len(check) - check[::-1].index(i) - 1  # sort other way around and find the index of the element i
+        # for getting the last appearance of the i tie when 1 is the highest tie and max_value is the smallest tie
+        tie_student = student_object_try[min_index:max_index + 1]  # Take a sub list to activate on this sub list the sort function
+        fixed_tie_student = sorted(tie_student, key=lambda x: (x.get_number_of_enrollments(),
+            x.current_highest_ordinal(course_name)), reverse=False)
+        student_object_try[min_index:max_index + 1] = fixed_tie_student
+        # Insert back the sorted sub list into the list that
+        # indicate about the ties in the same places
+
+
 def overlap_course(course_list):
     # Check which course is overlap each and other, for overlap the courses must be
     # in the same semester and day before checking if they overlap.
@@ -280,12 +443,11 @@ OrderedDict([('course_id', '3'), ('Semester', 'א'), ('lecturer', 'ד"ר פסק�
 ('day', 'ב'), ('time_start', '15:00:00'), ('time_end', '18:00:00'), ('course_group', 'חישוביות11')]),\
 OrderedDict([('course_id', '9'), ('Semester', 'ב'), ('lecturer', 'ד"ר וויסברג פנחס'), ('capacity', 30),\
 ('day', 'ד'), ('time_start', '13:00:00'), ('time_end', '16:00:00'), ('course_group', 'תכנות מתקדם13')])])])])])],\
-[OrderedDict([('id', 44), ('rank', 2), ('student', "205666407's profile"), ('course_group', 23)]), OrderedDict([('id', 45), ('rank', 82), ('student', "205666407's profile"), ('course_group', 24)]), OrderedDict([('id', 46), ('rank', 0), ('student', "205666407's profile"), ('course_group', 25)]), OrderedDict([('id', 47), ('rank', 4), ('student', "205666407's profile"), ('course_group', 26)]), OrderedDict([('id', 48), ('rank', 45), ('student', "205666407's profile"), ('course_group', 27)]), OrderedDict([('id', 49), ('rank', 45), ('student', "205666407's profile"), ('course_group', 28)]), OrderedDict([('id', 50), ('rank', 45), ('student', "205666407's profile"), ('course_group', 29)]), OrderedDict([('id', 51), ('rank', 97), ('student', "205666407's profile"), ('course_group', 30)]), OrderedDict([('id', 52), ('rank', 45), ('student', "205666407's profile"), ('course_group', 31)]), OrderedDict([('id', 53), ('rank', 45), ('student', "205666407's profile"), ('course_group', 32)]), OrderedDict([('id', 54), ('rank', 131), ('student', "205666407's profile"), ('course_group', 33)]), OrderedDict([('id', 55), ('rank', 45), ('student', "205666407's profile"), ('course_group', 34)]), OrderedDict([('id', 56), ('rank', 45), ('student', "205666407's profile"), ('course_group', 35)]), OrderedDict([('id', 57), ('rank', 45), ('student', "205666407's profile"), ('course_group', 36)]), OrderedDict([('id', 58), ('rank', 45), ('student', "205666407's profile"), ('course_group', 37)]), OrderedDict([('id', 59), ('rank', 45), ('student', "205666407's profile"), ('course_group', 38)]), OrderedDict([('id', 60), ('rank', 45), ('student', "205666407's profile"), ('course_group', 39)]), OrderedDict([('id', 61), ('rank', 45), ('student', "205666407's profile"), ('course_group', 40)]), OrderedDict([('id', 62), ('rank', 45), ('student', "205666407's profile"), ('course_group', 41)]), OrderedDict([('id', 63), ('rank', 45), ('student', "205666407's profile"), ('course_group', 42)]), OrderedDict([('id', 64), ('rank', 45), ('student', "205666407's profile"), ('course_group', 43)]),\
-OrderedDict([('id', 1007), ('rank', 47), ('student', "203777401's profile"), ('course_group', 23)]), OrderedDict([('id', 1008), ('rank', 47), ('student', "203777401's profile"), ('course_group', 24)]), OrderedDict([('id', 1009), ('rank', 47), ('student', "203777401's profile"), ('course_group', 25)]), OrderedDict([('id', 1010), ('rank', 47), ('student', "203777401's profile"), ('course_group', 26)]), OrderedDict([('id', 1011), ('rank', 47), ('student', "203777401's profile"), ('course_group', 27)]), OrderedDict([('id', 1012), ('rank', 47), ('student', "203777401's profile"), ('course_group', 28)]), OrderedDict([('id', 1013), ('rank', 47), ('student', "203777401's profile"), ('course_group', 29)]), OrderedDict([('id', 1014), ('rank', 47), ('student', "203777401's profile"), ('course_group', 30)]), OrderedDict([('id', 1015), ('rank', 47), ('student', "203777401's profile"), ('course_group', 31)]), OrderedDict([('id', 1016), ('rank', 47), ('student', "203777401's profile"), ('course_group', 32)]), OrderedDict([('id', 1017), ('rank', 47), ('student', "203777401's profile"), ('course_group', 33)]), OrderedDict([('id', 1018), ('rank', 47), ('student', "203777401's profile"), ('course_group', 34)]), OrderedDict([('id', 1019), ('rank', 47), ('student', "203777401's profile"), ('course_group', 35)]), OrderedDict([('id', 1020), ('rank', 47), ('student', "203777401's profile"), ('course_group', 36)]), OrderedDict([('id', 1021), ('rank', 47), ('student', "203777401's profile"), ('course_group', 37)]), OrderedDict([('id', 1022), ('rank', 47), ('student', "203777401's profile"), ('course_group', 38)]), OrderedDict([('id', 1023), ('rank', 47), ('student', "203777401's profile"), ('course_group', 39)]), OrderedDict([('id', 1024), ('rank', 47), ('student', "203777401's profile"), ('course_group', 40)]), OrderedDict([('id', 1025), ('rank', 47), ('student', "203777401's profile"), ('course_group', 41)]), OrderedDict([('id', 1026), ('rank', 47), ('student', "203777401's profile"), ('course_group', 42)]), OrderedDict([('id', 1027), ('rank', 47), ('student', "203777401's profile"), ('course_group', 43)])],\
-[[OOPCourse(28, 71, 'מבוא לקריפטוגרפיה 1', 30, '12:00:00', '15:00:00', 'א', 'א',  'l', 1)]],\
-[[OOPCourse(1, 10, 'הסתברות למדעי המחשב 2', 30, '09:00:00', '11:00:00', 'א', 'א',  'l', 1), \
-OOPCourse(3, 11, 'חישוביות 1', 30, '15:00:00', '18:00:00', 'ד', 'ב', 'l', 1),\
-OOPCourse(2, 9, 'תכנות מתקדם 3', 30, '13:00:00', '16:00:00', 'ד', 'ב', 'l', 1)]], 1)
+[OrderedDict([('id', 44), ('rank', 2), ('student', "205666407's profile"), ('course_group', 23)])],\
+[OOPCourse(28, 71, 'מבוא לקריפטוגרפיה 1', 30, '12:00:00', '15:00:00', 'א', 'א',  'l', 1, True)],\
+[[OOPCourse(1, 10, 'הסתברות למדעי המחשב 2', 30, '09:00:00', '11:00:00', 'א', 'א',  'l', 1, False), \
+OOPCourse(3, 11, 'חישוביות 1', 30, '15:00:00', '18:00:00', 'ד', 'ב', 'l', 1, False),\
+OOPCourse(2, 9, 'תכנות מתקדם 3', 30, '13:00:00', '16:00:00', 'ד', 'ב', 'l', 1, False)]], 1)
 
     >>> len(student_list_tmp)
     2
@@ -339,5 +501,4 @@ OOPCourse(2, 9, 'תכנות מתקדם 3', 30, '13:00:00', '16:00:00', 'ד', 'ב
 
 if __name__ == "__main__":
     import doctest
-
     doctest.testmod()

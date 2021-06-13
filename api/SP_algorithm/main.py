@@ -3,19 +3,16 @@ import logging
 from api.SP_algorithm.course import OOPCourse
 from api.SP_algorithm.course_group import Course_group
 from api.SP_algorithm.student import OOPStudent
-from collections import OrderedDict
 from api.models import Result, Course, Student
-import sys
 
 
-# logging.basicConfig(level=logging.DEBUG)
+#logging.basicConfig(level=logging.DEBUG)
 
 
-def check_overlap(student_object, course_object):
-
+def check_overlap(student_object, course_object): # Check if there is an overlap course to the course we tried to enroll
     overlap_courses = course_object.get_overlap_list()
     if len(overlap_courses) > 0:  # If there isn't overlap course we can simply say there isn't an overlap course
-        output = True
+        output = True   # We'll presume there is no enrolled course such that is overlapped with course_object
         enroll_status = student_object.get_enrolment_status()
         logging.info("Checking if there is overlap course to course_object such that student_object try to enroll")
         for overlap in range(len(overlap_courses)):
@@ -47,7 +44,7 @@ def ready_to_new_round(student_list, student_names, ranks, round):
     return _data
 
 
-def second_phase(student_object, elective_course_list, need_to_change, gap=0):
+def second_phase(student_object, elective_course_list, need_to_change, gap=0):  # need_to_change
     logging.info("Student id %s is activate second phase", student_object.get_id())
     need_to_enroll = True
     tried = False
@@ -64,17 +61,17 @@ def second_phase(student_object, elective_course_list, need_to_change, gap=0):
 
         for j in range(len(elective_course_list)):
             if elective_course_list[j].get_name() == next_key[0]:
-                if check_overlap(student_object, elective_course_list[j]) and elective_course_list[
-                    j].get_capacity() > 0:
-                    if student_object.get_need_to_enroll() > 0:
-                        logging.info("We found a course named %s that student with the ID %s can enrolled",
-                                     elective_course_list[j].get_name(), student_object.get_id(), )
-                        elective_course_list[j].student_enrollment(student_object.get_id(), student_object)
-                        student_object.got_enrolled(elective_course_list[j].get_name())
-                        s = Student.objects.get(student_id=student_object.get_id())
-                        c = Course.objects.get(course_id=elective_course_list[j].get_id())
-                        Result.objects.create(course=c, student=s, selected=True)
-                        need_to_enroll = False  # The student have been enrolled so we can stop the loop and continue the algorithm
+                if check_overlap(student_object, elective_course_list[j]):
+                    if elective_course_list[j].get_capacity() > 0:
+                        if student_object.get_need_to_enroll() > 0:
+                            logging.info("We found a course named %s that student with the ID %s can enrolled",
+                                         elective_course_list[j].get_name(), student_object.get_id(), )
+                            elective_course_list[j].student_enrollment(student_object.get_id(), student_object)
+                            student_object.got_enrolled(elective_course_list[j].get_name())
+                            s = Student.objects.get(student_id=student_object.get_id())
+                            c = Course.objects.get(course_id=elective_course_list[j].get_id())
+                            Result.objects.create(course=c, student=s, selected=True)
+                            need_to_enroll = False  # The student have been enrolled so we can stop the loop and continue the algorithm
 
         if student_object.get_current_highest_bid() == 0:  # If there is no other preference break the loop and back to
             # enroll student function
@@ -82,9 +79,6 @@ def second_phase(student_object, elective_course_list, need_to_change, gap=0):
 
 
 def there_is_a_tie(students_object):
-    """
-    >>> [OOPStudent(1, 5, 1, {'probability 2' : 1, })]
-    """
     logging.info("We trying to enrolling more students to a course such that the number of student exceed"
                  "the remaining capacity")
 
@@ -114,12 +108,12 @@ def sort_tie_breaker(student_object_try, check, course_name):
         min_index = check.index(i)
         max_index = len(check) - check[::-1].index(i) - 1  # sort other way around and find the index of the element i
         # for getting the last appearance of the i tie when 1 is the highest tie and max_value is the smallest tie
-        tie_student = student_object_try[
-                      min_index:max_index + 1]  # Take a sub list to activate on this sub list the sort function
+        tie_student = student_object_try[min_index:max_index]
+        # Take a sub list to activate on this sub list the sort function
         fixed_tie_student = sorted(tie_student, key=lambda x: (
-        x.get_number_of_enrollments(), x.current_highest_ordinal(course_name)))
-        student_object_try[
-        min_index:max_index] = fixed_tie_student  # Insert back the sorted sub list into the list that
+            x.get_number_of_enrollments(), x.current_highest_ordinal(course_name)), reverse=False)
+        student_object_try[min_index:max_index] = fixed_tie_student
+        # Insert back the sorted sub list into the list that
         # indicate about the ties in the same places
 
 
@@ -144,8 +138,15 @@ def enroll_students(_data, student_list, elective_course_list, group_course):
     need_to_pass = 0
     for key, value in amount_of_bidrs.items():
         j += 1
+        tmp_student_list = list(student_element[key])
         logging.info("Starting to check if we can to enroll student to the course %s", key)
-        logging.info("While the students ID is: " + str(value)[1:-1])
+        for index in tmp_student_list:
+            next_preference = index.get_next_preference()
+            pre_key = list(next_preference.keys())
+            pre_value = list(next_preference.values())
+            logging.info("While the students ID is: %s, for course named %s, and there bid %d is", str(index.get_id()),
+                         pre_key[0], pre_value[0])
+
         if not need_to_pass == 0:
             logging.info(
                 "We need to pass on current course because we tried to enroll to this course in other option previously")
@@ -190,12 +191,9 @@ def enroll_students(_data, student_list, elective_course_list, group_course):
 
                                         second_phase(student_object_try[need_to], elective_course_list, False)
 
-
-
                         elif elective_course_list[j].get_capacity() == 0:  # If the capacity is zero
-                            logging.info(
-                                "No student can be enrolled because there is no remaining capacity to the course named %s",
-                                elective_course_list[j].get_name())
+                            logging.info("No student can be enrolled because there is no remaining capacity to the"
+                                         " course named %s", elective_course_list[j].get_name())
                             for need_to in range(len(student_object_try)):
                                 if student_object_try[need_to].get_need_to_enroll() > 0:
                                     # gap = elective_course_list[j].get_lowest_bid() - \
@@ -205,15 +203,18 @@ def enroll_students(_data, student_list, elective_course_list, group_course):
 
                                     second_phase(student_object_try[need_to], elective_course_list, True)
 
-
-
                         elif not elective_course_list[j].can_be_enroll(len(try_to_enroll)):
                             # If the capacity is not let to enroll all student who put bid over that course
+                            logging.info("Sort the students is decreasing order according to their highest bid")
                             student_object_try = sorted(student_object_try, key=lambda x: x.get_current_highest_bid(),
                                                         reverse=True)
-                            logging.info(
-                                "We try to enroll more students when number of student is %d than remaining capacity %d",
-                                len(student_object_try), elective_course_list[j].get_capacity())
+                            for index in student_object_try:
+                                next_preference = index.get_next_preference()
+                                pre_key = list(next_preference.keys())
+                                pre_value = list(next_preference.values())
+                                logging.info("While the students ID is: %s, for course named %s, and there bid %d is",
+                                             str(index.get_id()), pre_key[0], pre_value[0])
+
                             check = there_is_a_tie(student_object_try)
                             if check.count(0) == len(check):  # In case there isn't a tie between student bids
                                 for need_to in range(len(student_object_try)):
@@ -226,8 +227,6 @@ def enroll_students(_data, student_list, elective_course_list, group_course):
                                             s = Student.objects.get(student_id=student_object_try[need_to].get_id())
                                             c = Course.objects.get(course_id=elective_course_list[j].get_id())
                                             Result.objects.create(course=c, student=s, selected=True)
-
-
 
                                     else:
                                         # If there is a student such that want to enroll to course but is overlap or have zero
@@ -243,9 +242,6 @@ def enroll_students(_data, student_list, elective_course_list, group_course):
 
                                         else:
                                             second_phase(student_object_try[need_to], elective_course_list, False)
-
-
-
 
                             else:  # In case there is a tie between student bids we break the tie by there ordinal order
                                 sort_tie_breaker(student_object_try, check, elective_course_list[j].get_name())
@@ -276,7 +272,6 @@ def enroll_students(_data, student_list, elective_course_list, group_course):
 
                                         else:
                                             second_phase(student_object_try[need_to], elective_course_list, False)
-
 
                     else:
                         need_to_pass = len(possibles) - 1
@@ -313,9 +308,8 @@ def enroll_students(_data, student_list, elective_course_list, group_course):
 
                         elif total_capacity == 0:
                             for need_to in range(len(student_object_try)):
-                                logging.info(
-                                    "No student can be enrolled because there is no remaining capacity to the course named %s",
-                                    elective_course_list[j].get_name())
+                                logging.info("No student can be enrolled because there is no remaining capacity "
+                                             "to the course named %s", elective_course_list[j].get_name())
                                 if student_object_try[need_to].get_need_to_enroll() > 0:
                                     # gap = elective_course_list[j].get_lowest_bid() - \
                                     #    student_object_try[need_to].get_current_highest_bid()
@@ -323,7 +317,6 @@ def enroll_students(_data, student_list, elective_course_list, group_course):
                                     # student_object_try[need_to].add_gap(gap)
 
                                     second_phase(student_object_try[need_to], elective_course_list, True)
-
 
                         elif total_capacity < len(try_to_enroll):
                             student_object_try = sorted(student_object_try, key=lambda x: x.get_current_highest_bid(),
@@ -384,20 +377,21 @@ def algorithm(fixed, student_list, elective_course_list, group_course, rounds=5)
     ranks = list(fixed.values())
     for i in range(1, rounds + 1):
         logging.info("Starting round number %d", i)
-        round_data = ready_to_new_round(student_list, student_names, ranks, i)
+        round_data = ready_to_new_round(student_list, student_names, ranks, i)  # Create a dictionary of
+        # {<student id>: {<course name>: <highest bid>}, ...} return for all students in the input list
         enroll_students(round_data, student_list, elective_course_list, group_course)
 
 
+# Changes the orderDic of courses that we getting from the server and convert to an object OOPCourse
 def order_course_data(raw_course_list):
-
     logging.info(
-        "Create the course list that will contain the course data that the program get from the server about courses and group courses")
+        "Create the course list that will contain the course data that "
+        "the program get from the server about courses and group courses")
 
     group_course_list = []
     course_list_elective_output = []
     course_list_mandatory_output = []
     possible_list = []
-    max_office = 0
 
     logging.info("Starting the procedure of convert order dictionary we got from the server to group course")
     create_course = 0
@@ -406,14 +400,11 @@ def order_course_data(raw_course_list):
     for dic in raw_course_list:
         id_group = int(dic['id'])
         name = dic['name']
-        office = int(dic['office'])
-        if max_office < office:
-            max_office = office
-
+        id_office = int(dic['office'])
         elect = dic['is_elective']
 
         counter = 1
-        for dic2 in dic['courses']:
+        for dic2 in dic['courses']: # dic2 is representing the courses of group_course (= dic1)
             id = int(dic2['course_id'])
             semester = dic2['Semester']
             lecturer = dic2['lecturer']
@@ -422,7 +413,7 @@ def order_course_data(raw_course_list):
             start = dic2['time_start']
             end = dic2['time_end']
             tmp = OOPCourse(id, id_group, name + ' ' + str(counter), capacity, start, end, semester, day, lecturer,
-                            office, elect)
+                            id_office, elect)
             logging.info("Finish the procedure of create a new course number %d", create_course)
             create_course += 1
             counter += 1
@@ -436,13 +427,13 @@ def order_course_data(raw_course_list):
             for co in possible_list:
                 course_list_mandatory_output.append(co)
 
-        new_group = Course_group(id_group, name, office, copy(possible_list))
+        new_group = Course_group(id_group, name, id_office, copy(possible_list))
         logging.info("Finish the procedure of create a new group course number %d and named %s", create_group, name)
         create_group += 1
         group_course_list.append(new_group)
         possible_list.clear()
 
-    return group_course_list, course_list_elective_output, course_list_mandatory_output, max_office
+    return group_course_list, course_list_elective_output, course_list_mandatory_output
 
 
 def overlap_course(course_list):
@@ -453,82 +444,80 @@ def overlap_course(course_list):
     # time is the same. this is the three option that if one of that happened we add the other course
     # to the list of overlap courses the course we checking currently
 
-
     for i in range(len(course_list)):
         overlap_list_for_i = []
         for j in range(len(course_list)):
-            if not i == j:
-                if course_list[j].get_office() == course_list[i].get_office():
-                    if course_list[j].get_day() == course_list[i].get_day():
-                        if course_list[j].get_semester() == course_list[i].get_semester():
-                            if course_list[j].get_start() <= course_list[i].get_start() < course_list[j].get_end():
-                                overlap_list_for_i.append(course_list[j])
+            if not i == j:  # If it's not same course
+                if course_list[j].get_day() == course_list[i].get_day():  # If it's in the same day
+                    if course_list[j].get_semester() == course_list[i].get_semester():  # If it's in the same day
+                        if course_list[j].get_start() <= course_list[i].get_start() < course_list[j].get_end():
+                            overlap_list_for_i.append(course_list[j])
 
-                            elif course_list[j].get_start() < course_list[i].get_end() <= course_list[j].get_end():
-                                overlap_list_for_i.append(course_list[j])
+                        elif course_list[j].get_start() < course_list[i].get_end() <= course_list[j].get_end():
+                            overlap_list_for_i.append(course_list[j])
 
-                            elif course_list[j].get_start() == course_list[i].get_start() and \
-                                    course_list[i].get_end() == course_list[j].get_end():
-                                overlap_list_for_i.append(course_list[j])
+                        elif course_list[j].get_start() == course_list[i].get_start() and \
+                                course_list[i].get_end() == course_list[j].get_end():
+                            overlap_list_for_i.append(course_list[j])
 
         course_list[i].set_overlap(overlap_list_for_i)
         overlap_list_for_i.clear()
 
 
-def order_student_data(raw_student_list, raw_rank_list, elective_course_list, mandatory_course_list, num_offices):
-
+def order_student_data(raw_student_list, raw_rank_list, elective_course_list, course_list):
     counter = 0
     logging.info(
         "create the student list that will contain the data such that the program get from the server about students")
-    indexed_enrollment = [{} for i in range(num_offices)]
-    cardinal_order = [{} for i in range(num_offices)]
-    student_list = [[] for i in range(num_offices)]
-    course_list = [[] for i in range(num_offices)]
+    indexed_enrollment = {}
+    cardinal_order = {}
+    student_list = []
 
-    for i in range(num_offices):
-        course_list[i] = elective_course_list[i] + mandatory_course_list[i]
+    for i in course_list:
+        indexed_enrollment[i.get_name()] = 0
 
-    for office_number in course_list:
-        for i in office_number:
-            indexed_enrollment[i.get_office() - 1][i.get_name()] = 0
-
-            if i.get_elective():
-                cardinal_order[i.get_office() - 1][i.get_name()] = 0
+        if i.get_elective():
+            cardinal_order[i.get_name()] = 0
 
     logging.info("starting the procedure of convert order dictionary we got from the server to students")
 
     for dic in raw_student_list:
-        tmp1 = deepcopy(indexed_enrollment)
-        tmp2 = deepcopy(cardinal_order)
+        deepcopy_indexed_enrollment = deepcopy(indexed_enrollment)
+        deepcopy_cardinal_order = deepcopy(cardinal_order)
         id = int(dic['student_id'])
         need_to_enroll = int(dic['amount_elective'])
         office = int(dic['office'])
 
-        for i in range(len(course_list[office - 1])):
-            for dic2 in dic['courses']:
-                if course_list[office - 1][i].get_id() == int(dic2['course_id']):
-                    tmp1[office - 1][course_list[office - 1][i].get_name()] = 1
+        # Updating the enrollment status for mandatory courses
 
-        for rank_dic in raw_rank_list:
-            student_id = int(rank_dic['student'][0:9])
+        for i in range(len(course_list)):
+            for dic2 in dic['courses']:
+                if course_list[i].get_id() == int(dic2['course_id']):
+                    deepcopy_indexed_enrollment[course_list[i].get_name()] = 1
+
+        for rank_dic in raw_rank_list:  # Update the ranking of elective courses for all student in current office
+            student_id = int(rank_dic['student'][0:9]) # Taking the student id for checking if is the same student
             group_id = int(rank_dic['course_group'])
             rank = int(rank_dic['rank'])
+            if rank == 0:
+                rank += 1
+
             if student_id == id:
-                for office_number in elective_course_list:
-                    for course in office_number:
-                        if course.get_id_group() == group_id:
-                            tmp2[office - 1][course.get_name()] = rank
+                for course in elective_course_list:
+                    if course.get_id_group() == group_id:
+                        deepcopy_cardinal_order[course.get_name()] = rank
 
         logging.info(
             "Create a new student number %d and insert him to the student_list in the row of his office number %d",
             counter, office)
-        s = OOPStudent(id, need_to_enroll, office, deepcopy(tmp1[office - 1]), deepcopy(tmp2[office - 1]))
-        student_list[office - 1].append(s)
+
+        s = OOPStudent(id, need_to_enroll, office, deepcopy(deepcopy_indexed_enrollment), deepcopy(deepcopy_cardinal_order))
+        student_list.append(s)
         counter += 1
 
     return student_list
 
 
+'''
 def sort_by_office_courses(course_list, num_offices):
     sort_office_list_course = [[] for i in range(num_offices)]
 
@@ -536,70 +525,50 @@ def sort_by_office_courses(course_list, num_offices):
         sort_office_list_course[i.get_office() - 1].append(i)
 
     return sort_office_list_course
+'''
 
 
 def main(raw_student_list, raw_course_list, raw_rank_list):
-
     print(raw_student_list)
     print(raw_course_list)
     print(raw_rank_list)
 
-    course_group_list, course_elect_list, course_mandatory_list, num_offices = order_course_data(raw_course_list)
-    logging.info("Sorting the elective courses into office according to the number of offices")
-    set_of_offices_elective_courses = sort_by_office_courses(course_elect_list, num_offices)
-    logging.info("Sorting the mandatory courses into office according to the number of offices")
-    set_of_offices_mandatory_courses = sort_by_office_courses(course_mandatory_list, num_offices)
+    course_group_list, course_elect_list, course_mandatory_list = order_course_data(raw_course_list)
+    # logging.info("Sorting the elective courses into office according to the number of offices")
+    # set_of_offices_elective_courses = sort_by_office_courses(course_elect_list, num_offices)
+    # logging.info("Sorting the mandatory courses into office according to the number of offices")
+    # set_of_offices_mandatory_courses = sort_by_office_courses(course_mandatory_list, num_offices)
 
     logging.info("Now merging the elective and mandatory courses for checking possible overlap while maintaining the"
                  "separation of courses according to the office number")
 
+    course_list = course_elect_list + course_mandatory_list
+    overlap_course(course_list)
 
-    course_list = [[] for i in range(num_offices)]
-    for index in range(num_offices):
-        course_list[index] = set_of_offices_elective_courses[index] + set_of_offices_mandatory_courses[index]
-        overlap_course(course_list[index])
-
-    logging.info("while convert the student data from order dictionary to Student we sort student according to their office ")
-    set_of_offices_students = order_student_data(raw_student_list, raw_rank_list, set_of_offices_elective_courses,
-                                                 set_of_offices_mandatory_courses, num_offices)
-
-    logging.info("Sorting the group courses into office according to the number of offices")
-    set_of_office_group = sort_by_office_courses(course_group_list, num_offices)
+    logging.info(
+        "while convert the student data from order dictionary to Student we sort student according to their office ")
+    student_list = order_student_data(raw_student_list, raw_rank_list, course_elect_list, course_list)
 
     logging.info("Order the data for the algorithm in a list of dictionaries as each dictionary is represent"
                  " a single office while the data is portrayed by {student id: dictionary of cardinal ranking"
                  " of the same student}")
-    fixed = [{} for i in range(num_offices)]
-    dic = {}
-    iteration = 0
-    for office_index in set_of_offices_students:
-        for student in office_index:
-            dic[student.get_id()] = student.get_cardinal()
+    fixed = {}
+    for student in student_list:
+        fixed[student.get_id()] = student.get_cardinal()
 
-        tmp = deepcopy(dic)
-        fixed[iteration] = tmp
-        iteration += 1
-        dic.clear()
+    logging.info("Activate the algorithm")
+    algorithm(fixed, student_list, course_elect_list, course_group_list)
 
+    for i in student_list:
+        i.to_string()
+        print()
 
-    for index in range(num_offices):
-        logging.info("Activate the algorithm for office number %d", index+1)
-        algorithm(fixed[index], set_of_offices_students[index], set_of_offices_elective_courses[index], set_of_office_group[index])
-
-
-    for office in set_of_offices_students:
-        for i in office:
-            i.to_string()
-            print()
-
-    for office in set_of_offices_elective_courses:
-        for i in office:
-            i.to_string()
-            print()
+    for i in course_elect_list:
+        i.to_string()
+        print()
 
     sum = 0
-    for office_num in set_of_offices_students:
-        for index in office_num:
-            sum += index.get_number_of_enrollments()
+    for i in student_list:
+        sum += i.get_number_of_enrollments()
 
     print(sum)
