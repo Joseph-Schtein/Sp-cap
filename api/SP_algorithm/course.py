@@ -25,8 +25,14 @@ class OOPCourse:
             self.capacity -= 1
             self.students.append(student_name)
 
+        elif self.capacity == 0:
+            raise Exception("We can't enroll you to the course named", self.name, "because there is no remaining capacity")
+
+        elif student_name in self.students:
+            raise Exception("The student: ", student_name, "had been enrolled already for course: ", self.name)
+
         else:
-            raise Exception("We can't enroll you to the course named", self.name)
+            raise Exception("Student ", student_name , "got to his capacity of enrollments for course: ", self.name)
 
     def can_be_enroll(self, number_of_students):
         return self.capacity >= number_of_students

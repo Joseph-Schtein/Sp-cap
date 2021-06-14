@@ -33,13 +33,13 @@ def create_ordinal_order(order):
 
 class OOPStudent:
 
-    def __init__(self, id, need_number, student_office: int, enrolled_or_not_enrolled: dict, cardinal: dict):
+    def __init__(self, id: int, need_number: int, student_office: int, enrolled_or_not_enrolled: dict, cardinal: dict):
         self.id = id
         self.need_to_enroll = need_number   # The number of courses that this student need to enroll
         self.enrolled_num = 0
         self.cardinal_order = deepcopy(cardinal)
         self.changeable_cardinal_order = deepcopy(cardinal)
-        self.enrolled_or_not = enrolled_or_not_enrolled  # dictionery that the key is course name and the value
+        self.enrolled_or_not = enrolled_or_not_enrolled  # dictionary that the key is course name and the value
         # represent if the student is enroll or not when 1 mean enrolled while 0 is not enroll yet
         self.ordinal_order = create_ordinal_order(self.cardinal_order)
         self.cardinal_utility = 0
@@ -81,7 +81,6 @@ class OOPStudent:
         >>> s.got_enrolled('ab 2')
         >>> s.get_changeable_cardinal()
         {'aa 1': 0, 'aa 2': 0, 'ab 1': 0, 'ab 2': 0, 'ac 1': 13}
-
          >>> s = OOPStudent(1, 5, 1, {'aa 1': 0, 'aa 2': 0, 'ab 1': 0, 'ab 2': 0, 'ac 1': 0},\
 {'aa 1': 40, 'aa 2': 7, 'ab 1': 30, 'ab 2': 20, 'ac 1': 13})
         >>> s.got_enrolled('ac 1')
@@ -125,7 +124,6 @@ class OOPStudent:
         >>> s.delete_current_preference()
         >>> s.get_changeable_cardinal()
         {'aa 1': 0, 'ab 1': 0, 'ac 1': 0, 'ad 1': 0, 'ae 1': 0}
-
         >>> s = OOPStudent(1, 5, 1, {'aa 1': 0, 'aa 2': 0, 'ab 1': 0, 'ab 2': 0, 'ac 1': 0},\
 {'aa 1': 40, 'aa 2': 7, 'ab 1': 30, 'ab 2': 20, 'ac 1': 13})
         >>> s.got_enrolled('aa 2')
@@ -152,11 +150,9 @@ class OOPStudent:
         >>> s.got_enrolled('aa 1')
         >>> s.get_next_preference()
         {'ac 1': 30}
-
         >>> s.got_enrolled('ae 1')
         >>> s.get_next_preference()
         {'ac 1': 30}
-
         >>> s.got_enrolled('ac 1')
         >>> s.get_next_preference()
         {'ad 1': 20}
@@ -170,7 +166,7 @@ class OOPStudent:
     def get_number_of_enrollments(self):
         return self.enrolled_num
 
-    def add_gap(self, gap):
+    def add_gap(self, need_to_delete, gap=0):
         """
         >>> s = OOPStudent(1, 5, 1, {'aa 1': 0, 'ab 1': 0, 'ac 1': 0, 'ad 1': 0, 'ae 1': 0},\
 {'aa 1': 40, 'ab 1': 7, 'ac 1': 30, 'ad 1': 20, 'ae 1': 13})
@@ -189,52 +185,20 @@ class OOPStudent:
         >>> s.add_gap(10)
         >>> s.get_changeable_cardinal()
         {'aa 1': 0, 'ab 1': 0, 'ac 1': 0, 'ad 1': 0, 'ae 1': 0}
-
-        >>> s2 = OOPStudent(1, 5, 1, {'aa 1': 0, 'aa 2': 0, 'ab 1': 0, 'ab 2': 0, 'ac 1': 0, 'ac 2': 0, 'ad 1': 0},\
-{'aa 1': 40, 'aa 2': 40, 'ab 1': 30, 'ab 2': 30, 'ac 1': 13, 'ac 2': 13, 'ad 1': 18})
-        >>> s2.add_gap(10)
-        >>> s2.get_changeable_cardinal()
-        {'aa 1': 0, 'aa 2': 0, 'ab 1': 40, 'ab 2': 40, 'ac 1': 13, 'ac 2': 13, 'ad 1': 18}
-        >>> s2.add_gap(10)
-        >>> s2.get_changeable_cardinal()
-        {'aa 1': 0, 'aa 2': 0, 'ab 1': 0, 'ab 2': 0, 'ac 1': 13, 'ac 2': 13, 'ad 1': 28}
-        >>> s2.add_gap(15)
-        >>> s2.get_changeable_cardinal()
-        {'aa 1': 0, 'aa 2': 0, 'ab 1': 0, 'ab 2': 0, 'ac 1': 28, 'ac 2': 28, 'ad 1': 0}
-        >>> s2.add_gap(7)
-        >>> s2.get_changeable_cardinal()
-        {'aa 1': 0, 'aa 2': 0, 'ab 1': 0, 'ab 2': 0, 'ac 1': 0, 'ac 2': 0, 'ad 1': 0}
         """
+
         logging.info("If the student with ID %s didn't enroll we try to enroll him to his next preferred while taking"
-                     "portion/whole of his rejected bid to the next preferred", self.id)
+                     " portion/whole of his rejected bid to the next preferred", self.id)
+        if need_to_delete:
+            self.delete_current_preference()
+
         cardinal_value = list(self.changeable_cardinal_order.values())
         cardinal_keys = list(self.changeable_cardinal_order.keys())
-        max_value_index = cardinal_value.index(max(cardinal_value))
-        course_name = cardinal_keys[max_value_index]
-        sliced_name1 = course_name[:-2]
-        not_found1 = True
-        while not_found1:
-            if len(cardinal_keys) > max_value_index and cardinal_keys[max_value_index][:-2] == sliced_name1:
-                self.changeable_cardinal_order[cardinal_keys[max_value_index]] = 0
-                cardinal_value[max_value_index] = 0
-                max_value_index += 1
-
-            else:
-                not_found1 = False
-
         if cardinal_value.count(0) != len(cardinal_value):
-            # In case there is another preference (not all his bids are 0)
             max_value_index = cardinal_value.index(max(cardinal_value))
             course_name = cardinal_keys[max_value_index]
-            sliced_name = course_name[:-2]
-            not_found = True
-            while not_found:
-                if len(cardinal_keys) > max_value_index and cardinal_keys[max_value_index][:-2] == sliced_name:
-                    self.changeable_cardinal_order[cardinal_keys[max_value_index]] = cardinal_value[max_value_index] + gap
-                    max_value_index += 1
+            self.changeable_cardinal_order[course_name] = cardinal_value[max_value_index] + gap
 
-                else:
-                    not_found = False
 
     def get_current_highest_bid(self):
         """
@@ -251,7 +215,6 @@ class OOPStudent:
         >>> s.delete_current_preference()
         >>> s.get_current_highest_bid()
         20
-
          >>> s2 = OOPStudent(1, 5, 1, {'aa 1': 0, 'aa 2': 0, 'ab 1': 0, 'ab 2': 0, 'ac 1': 0, 'ac 2': 0, 'ad 1': 0},\
 {'aa 1': 40, 'aa 2': 40, 'ab 1': 30, 'ab 2': 30, 'ac 1': 13, 'ac 2': 13, 'ad 1': 18})
         >>> s2.get_current_highest_bid()
@@ -280,7 +243,6 @@ class OOPStudent:
         """
         >>> s = OOPStudent(1, 5, 1, {'aa 1': 0, 'ab 1': 0, 'ac 1': 0, 'ad 1': 0, 'ae 1': 0, 'af 1': 0},\
 {'aa 1': 40, 'ab 1': 7, 'ac 1': 30, 'ad 1': 20, 'ae 1': 13, 'af 1': 28})
-
         >>> s.got_enrolled('aa 1')
         >>> s.enrolled_or_not
         {'aa 1': 1, 'ab 1': 0, 'ac 1': 0, 'ad 1': 0, 'ae 1': 0, 'af 1': 0}
@@ -312,9 +274,6 @@ class OOPStudent:
         Student:  1  got to the limit of courses enrollment
         >>> s.changeable_cardinal_order
         {'aa 1': 0, 'ab 1': 7, 'ac 1': 0, 'ad 1': 0, 'ae 1': 0, 'af 1': 0}
-
-
-
         >>> s2 = OOPStudent(1, 5, 1, {'aa 1': 0, 'aa 2': 0, 'ab 1': 0, 'ab 2': 0, 'ac 1': 0, 'ac 2': 0, 'ad 1': 0},\
 {'aa 1': 40, 'aa 2': 40, 'ab 1': 30, 'ab 2': 30, 'ac 1': 13, 'ac 2': 13, 'ad 1': 18})
         >>> s2.got_enrolled('aa 2')
