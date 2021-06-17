@@ -5,30 +5,26 @@ from api.SP_algorithm.course_group import Course_group
 from api.SP_algorithm.student import OOPStudent
 from api.models import Result, Course, Student
 
-
 #logging.basicConfig(level=logging.DEBUG)
-
 
 def check_overlap(student_object, course_object): # Check if there is an overlap course to the course we tried to enroll
     overlap_courses = course_object.get_overlap_list()
     if len(overlap_courses) > 0:  # If there isn't overlap course we can simply say there isn't an overlap course
-        output = True   # We'll presume there is no enrolled course such that is overlapped with course_object
+        output = True  # We'll presume there is no enrolled course such that is overlapped with course_object
         enroll_status = student_object.get_enrolment_status()
-        logging.info("Checking if there is overlap course to course_object such that student_object try to enroll")
         for overlap in range(len(overlap_courses)):
             course_name = overlap_courses[overlap]
             check = enroll_status[course_name.get_name()]
             if check == 1:  # If The student is enroll to overlap course
-                student_object.delete_current_preference()
                 if output:
                     output = False
                     break
 
         return output
 
+
     else:
         return True
-
 
 def there_is_a_tie(students_object):
     logging.info("We trying to enrolling more students to a course such that the number of student exceed"
@@ -69,7 +65,7 @@ def sort_tie_breaker(student_object_try, check, course_name):
         # indicate about the ties in the same places
 
 
-def new_enroll_students(student_list, elective_course_list, round):
+def TTC_Algorithm(student_list, elective_course_list, round):
     student_need_to_enroll = copy(student_list)
     while len(student_need_to_enroll) > 0:
         student_need_to_enroll = list(filter(lambda x: x.get_number_of_enrollments() < round, student_need_to_enroll))
@@ -92,12 +88,62 @@ def new_enroll_students(student_list, elective_course_list, round):
 
 
                         else:
-                            student.add_gap(True, course_name[1])
+                            student.delete_current_preference()
                             need_to_break = True
                             break
 
                     else:
-                        student.add_gap(False)
+                        student.delete_current_preference()
+                        need_to_break = True
+                        break
+
+            if need_to_break:
+                break
+
+
+def calibration(student_list, elective_course_list):
+    for student in student_list:
+        pre = list(student.get_next_preference().items())
+        for course in elective_course_list:
+            if course.get_capacity() == 0 and pre[0][0] == course.get_name():
+                course.enrolled_student_receive(pre[0][1])
+                student.delete_current_preference()
+                student.add_gap(False, pre[0][1])
+
+            elif not check_overlap(student, course) and pre[0][0] == course.get_name():
+                student.delete_current_preference()
+                student.add_gap(False, pre[0][1])
+
+def SP_Algorithm(student_list, elective_course_list, round):
+    student_need_to_enroll = copy(student_list)
+    while len(student_need_to_enroll) > 0:
+        student_need_to_enroll = list(filter(lambda x: x.get_number_of_enrollments() < round, student_need_to_enroll))
+        student_need_to_enroll = list(filter(lambda x: x.get_current_highest_bid() != 0, student_need_to_enroll))
+        student_need_to_enroll = sorted(student_need_to_enroll, key=lambda x: x.get_current_highest_bid(), reverse=True)
+        need_to_break = False
+        for student in student_need_to_enroll:
+            try_to_enroll = student.get_next_preference()
+            tmp_preference = list(try_to_enroll.items())
+            course_name = tmp_preference[0]
+            for course in elective_course_list:
+                if course.get_name() == course_name[0]:
+                    if check_overlap(student, course):
+                        if student.get_need_to_enroll() > 0 and course.get_capacity()>0:
+                            course.student_enrollment(student.get_id(),student)
+                            student.got_enrolled(course.get_name())
+                            s = Student.objects.get(student_id=student.get_id())
+                            c = Course.objects.get(course_id=course.get_id())
+                            Result.objects.create(course=c, student=s, selected=True)
+
+
+                        else:
+                            course.enrolled_student_receive(tmp_preference[0][1])
+                            student.delete_current_preference()
+                            need_to_break = True
+                            break
+
+                    else:
+                        student.delete_current_preference()
                         need_to_break = True
                         break
 
@@ -108,7 +154,8 @@ def new_enroll_students(student_list, elective_course_list, round):
 def algorithm(student_list, elective_course_list, rounds=5):
     for i in range(1, rounds + 1):
         logging.info("Starting round number %d", i)
-        new_enroll_students(student_list, elective_course_list, i)
+        SP_Algorithm(student_list, elective_course_list, i)
+        #calibration(student_list, elective_course_list)
 
 
 # Changes the orderDic of courses that we getting from the server and convert to an object OOPCourse
@@ -289,3 +336,8 @@ def main(raw_student_list, raw_course_list, raw_rank_list):
     for i in student_list:
         sum += i.get_number_of_enrollments()
     print(sum)
+
+    sum2 = 0
+    for i in student_list:
+        sum2 += i.get_cardinal_utility()
+    print(sum2)

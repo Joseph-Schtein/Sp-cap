@@ -5,7 +5,7 @@ from collections import OrderedDict
 from copy import deepcopy, copy
 
 
-def check_overlap(student_object, course_object):
+def check_overlap(student_object, course_object):  # Check if there is an overlap course to the course we tried to enroll
     """
     >>> student = OOPStudent(1, 5, 1, {'aa':0, 'ab': 1, 'ac': 0, 'ad': 0, 'ae': 1}, {'aa':0, 'ab': 20, 'ac': 30, 'ad': 40, 'ae': 0})
     >>> course = OOPCourse(1, 2, 'aa', 5, '12:00:00', '15:00:00', 'a', 'Monday', 'l', 1, True)
@@ -35,23 +35,23 @@ True, [course])
     False
     """
     overlap_courses = course_object.get_overlap_list()
-    if overlap_courses is not None and len(overlap_courses) > 0:  # If there isn't overlap course we can simply say there isn't an overlap course
-        output = True
+    if len(overlap_courses) > 0:  # If there isn't overlap course we can simply say there isn't an overlap course
+        output = True  # We'll presume there is no enrolled course such that is overlapped with course_object
         enroll_status = student_object.get_enrolment_status()
         for overlap in range(len(overlap_courses)):
             course_name = overlap_courses[overlap]
             check = enroll_status[course_name.get_name()]
             if check == 1:  # If The student is enroll to overlap course
-                student_object.delete_current_preference()
                 if output:
                     output = False
                     break
 
+
         return output
+
 
     else:
         return True
-
 
 def order_course_data(raw_course_list):
     """
@@ -268,7 +268,20 @@ OOPStudent(5, 5, 1, {'aa 1': 0, 'ab 1': 0, 'ac 1': 0, 'ad 1': 0, 'ae 1': 0}, {'a
         # indicate about the ties in the same places
 
 
-def new_enroll_students(student_list, elective_course_list, round):
+def calibration(student_list, elective_course_list):
+    for student in student_list:
+        pre = list(student.get_next_preference().items())
+        for course in elective_course_list:
+            if course.get_capacity() == 0 and pre[0][0] == course.get_name():
+                course.enrolled_student_receive(pre[0][1])
+                student.delete_current_preference()
+                student.add_gap(False, pre[0][1])
+
+            elif not check_overlap(student, course) and pre[0][0] == course.get_name():
+                student.delete_current_preference()
+                student.add_gap(False, pre[0][1])
+
+def SP_Algorithm(student_list, elective_course_list, round):
     student_need_to_enroll = copy(student_list)
     while len(student_need_to_enroll) > 0:
         student_need_to_enroll = list(filter(lambda x: x.get_number_of_enrollments() < round, student_need_to_enroll))
@@ -288,12 +301,13 @@ def new_enroll_students(student_list, elective_course_list, round):
 
 
                         else:
-                            student.add_gap(True, course_name[1])
+                            course.enrolled_student_receive(tmp_preference[0][1])
+                            student.delete_current_preference()
                             need_to_break = True
                             break
 
                     else:
-                        student.add_gap(False)
+                        student.delete_current_preference()
                         need_to_break = True
                         break
 
@@ -337,10 +351,18 @@ OOPStudent(4, 3, 1, {'aa 1': 0, 'ab 1': 0, 'ac 1': 0, 'ad 1': 0, 'ae 1': 0}, {'a
     527
     >>> student_list_tmp[3].get_cardinal_utility()
     557
+    >>> student_list_tmp[0].get_ordinal_utility()
+    11
+    >>> student_list_tmp[1].get_ordinal_utility()
+    12
+    >>> student_list_tmp[2].get_ordinal_utility()
+    9
+    >>> student_list_tmp[3].get_ordinal_utility()
+    9
     """
     for i in range(1, rounds + 1):
-        new_enroll_students(student_list, elective_course_list, i)
-
+        SP_Algorithm(student_list, elective_course_list, i)
+        calibration(student_list, elective_course_list)
 
 
 

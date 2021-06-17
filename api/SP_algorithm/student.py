@@ -44,7 +44,6 @@ class OOPStudent:
         self.ordinal_order = create_ordinal_order(self.cardinal_order)
         self.cardinal_utility = 0
         self.ordinal_utility = 0
-        self.enrolled_first_phase = False
         self.office = student_office
 
     def get_id(self):
@@ -64,6 +63,9 @@ class OOPStudent:
 
     def get_cardinal_utility(self):
         return self.cardinal_utility
+
+    def get_ordinal_utility(self):
+        return self.ordinal_utility
 
     def get_need_to_enroll(self):
         return self.need_to_enroll
@@ -140,6 +142,7 @@ class OOPStudent:
         course_name = cardinal_keys[max_value_index]
         self.changeable_cardinal_order[course_name] = 0
         cardinal_value[max_value_index] = 0
+        return self.cardinal_order[course_name]
 
     def get_next_preference(self):
         """
@@ -158,9 +161,10 @@ class OOPStudent:
         {'ad 1': 20}
         """
         logging.info("Asking for the current highest bid of student %s", self.id)
-        cardinal_value = list(self.changeable_cardinal_order.values())
-        cardinal_keys = list(self.changeable_cardinal_order.keys())
-        max_value_index = cardinal_value.index(max(cardinal_value))
+        changeable_cardinal_value = list(self.changeable_cardinal_order.values())
+        cardinal_value = list(self.cardinal_order.values())
+        cardinal_keys = list(self.cardinal_order.keys())
+        max_value_index = changeable_cardinal_value.index(max(changeable_cardinal_value))
         return {cardinal_keys[max_value_index]: cardinal_value[max_value_index]}
 
     def get_number_of_enrollments(self):
@@ -200,6 +204,16 @@ class OOPStudent:
             self.changeable_cardinal_order[course_name] = cardinal_value[max_value_index] + gap
 
 
+    def receive_unspent_points(self, highest_rejected, course_name):
+        if self.changeable_cardinal_order[course_name] == 0:
+            gap = self.cardinal_order[course_name] - highest_rejected
+            cardinal_value = list(self.changeable_cardinal_order.values())
+            cardinal_keys = list(self.changeable_cardinal_order.keys())
+            max_value_index = cardinal_value.index(max(cardinal_value))
+            if gap < 0:
+                gap = 0
+            self.changeable_cardinal_order[cardinal_keys[max_value_index]] += gap
+
     def get_current_highest_bid(self):
         """
          >>> s = OOPStudent(1, 5, 1, {'aa 1': 0, 'ab 1': 0, 'ac 1': 0, 'ad 1': 0, 'ae 1': 0, 'af 1': 0},\
@@ -232,9 +246,9 @@ class OOPStudent:
         >>> s2.get_current_highest_bid()
         18
         """
-        cardinal_value = list(self.changeable_cardinal_order.values())
-        index = cardinal_value.index(max(cardinal_value))
-        return cardinal_value[index]
+        changeable_cardinal_value = list(self.changeable_cardinal_order.values())
+        index = changeable_cardinal_value.index(max(changeable_cardinal_value))
+        return changeable_cardinal_value[index]
 
     def current_highest_ordinal(self, course_name):
         return self.ordinal_order[course_name]
@@ -301,7 +315,7 @@ class OOPStudent:
         if self.need_to_enroll > 0 and self.enrolled_or_not[course_name] == 0:
             logging.info("We enroll student with ID %s to coursed named %s", self.id, course_name)
             self.need_to_enroll -= 1
-            self.cardinal_utility += self.changeable_cardinal_order[course_name]
+            self.cardinal_utility += self.cardinal_order[course_name]
             self.changeable_cardinal_order[course_name] = 0
             self.enrolled_or_not[course_name] = 1
             self.enrolled_num += 1
