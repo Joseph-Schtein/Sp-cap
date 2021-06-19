@@ -19,7 +19,7 @@ True, [])
 True, [])
     >>> course.set_overlap([])
     >>> check_overlap(student, course)
-    True
+    False
     >>> student = OOPStudent(1, 5, 1, {'aa':0, 'ab': 1, 'ac': 0, 'ad': 0, 'ae': 1}, {'aa': 0, 'ab': 20, 'ac': 30, 'ad': 40, 'ae': 0})
     >>> course = OOPCourse(1, 2, 'aa', 5, '12:00:00', '15:00:00', 'a', 'Monday', 'l', 1, True, [])
     >>> overlap_tmp1 = OOPCourse(3, 5, 'ab', 5, '14:00:00', '17:00:00', 'b', 'Thursday', 'l', 1,\
@@ -32,18 +32,18 @@ True, [])
 True, [course])
     >>> course.set_overlap([overlap_tmp1, overlap_tmp2, overlap_tmp3, overlap_tmp4])
     >>> check_overlap(student, course)
-    False
+    True
     """
     overlap_courses = course_object.get_overlap_list()
     if len(overlap_courses) > 0:  # If there isn't overlap course we can simply say there isn't an overlap course
-        output = True  # We'll presume there is no enrolled course such that is overlapped with course_object
+        output = False  # We'll presume there is no enrolled course such that is overlapped with course_object
         enroll_status = student_object.get_enrolment_status()
         for overlap in range(len(overlap_courses)):
             course_name = overlap_courses[overlap]
             check = enroll_status[course_name.get_name()]
             if check == 1:  # If The student is enroll to overlap course
-                if output:
-                    output = False
+                if not output:
+                    output = True
                     break
 
 
@@ -51,7 +51,7 @@ True, [course])
 
 
     else:
-        return True
+        return False
 
 def order_course_data(raw_course_list):
     """
@@ -155,118 +155,6 @@ OrderedDict([('id', 28), ('name', 'מבוא לקריפטוגרפיה'), ('is_ele
     return group_course_list, course_list_elective_output, course_list_mandatory_output, max_office
 
 
-def there_is_a_tie(students_object):
-    """
-      >>> student_list_tmp = [OOPStudent(1, 5, 1, {'aa':0, 'ab': 1, 'ac': 0, 'ad': 0, 'ae': 1}, {'aa':10, 'ab': 0, 'ac': 30, 'ad': 20, 'ae': 0}),\
-OOPStudent(2, 5, 1, {'aa':0, 'ab': 0, 'ac': 0, 'ad': 0, 'ae': 0}, {'aa':25, 'ab': 18, 'ac': 11, 'ad': 29, 'ae': 12}),\
-OOPStudent(2, 5, 1, {'aa':1, 'ab': 0, 'ac': 1, 'ad': 0, 'ae': 0}, {'aa':0, 'ab': 12, 'ac': 0, 'ad': 40, 'ae': 10})]
-    >>> there_is_a_tie(student_list_tmp)
-    [0, 0, 0]
-    >>> student_list_tmp = [OOPStudent(1, 5, 1, {'aa': 0, 'ab': 1, 'ac': 0, 'ad': 0, 'ae': 1},{'aa': 10, 'ab': 0, 'ac': 30, 'ad': 20, 'ae': 0}), \
-OOPStudent(2, 5, 1, {'aa': 0, 'ab': 0, 'ac': 0, 'ad': 0, 'ae': 0}, {'aa': 25, 'ab': 18, 'ac': 11, 'ad': 30, 'ae': 12}), \
-OOPStudent(2, 5, 1, {'aa': 1, 'ab': 0, 'ac': 1, 'ad': 0, 'ae': 0}, {'aa': 0, 'ab': 12, 'ac': 0, 'ad': 40, 'ae': 10})]
-    >>> there_is_a_tie(student_list_tmp)
-    [1, 1, 0]
->>> student_list_tmp = [OOPStudent(1, 5, 1, {'aa': 0, 'ab': 1, 'ac': 0, 'ad': 0, 'ae': 1},{'aa': 10, 'ab': 0, 'ac': 30, 'ad': 20, 'ae': 0}), \
-OOPStudent(2, 5, 1, {'aa': 0, 'ab': 0, 'ac': 0, 'ad': 0, 'ae': 0}, {'aa': 25, 'ab': 18, 'ac': 11, 'ad': 30, 'ae': 12}), \
-OOPStudent(2, 5, 1, {'aa': 1, 'ab': 0, 'ac': 1, 'ad': 0, 'ae': 0}, {'aa': 0, 'ab': 12, 'ac': 0, 'ad': 30, 'ae': 10})]
-    >>> there_is_a_tie(student_list_tmp)
-    [1, 1, 1]
-    >>> student_list_tmp = [OOPStudent(1, 5, 1, {'aa': 0, 'ab': 1, 'ac': 0, 'ad': 0, 'ae': 1},{'aa': 10, 'ab': 0, 'ac': 20, 'ad': 30, 'ae': 0}), \
-OOPStudent(3, 5, 1, {'aa': 0, 'ab': 0, 'ac': 0, 'ad': 0, 'ae': 0}, {'aa': 25, 'ab': 18, 'ac': 11, 'ad': 30, 'ae': 12}), \
-OOPStudent(4, 5, 1, {'aa': 1, 'ab': 0, 'ac': 1, 'ad': 0, 'ae': 0}, {'aa': 0, 'ab': 12, 'ac': 0, 'ad': 35, 'ae': 10}),\
-OOPStudent(5, 5, 1, {'aa': 1, 'ab': 0, 'ac': 1, 'ad': 0, 'ae': 0}, {'aa': 0, 'ab': 12, 'ac': 0, 'ad': 35, 'ae': 10}),\
-OOPStudent(6, 5, 1, {'aa': 1, 'ab': 0, 'ac': 1, 'ad': 0, 'ae': 0}, {'aa': 0, 'ab': 12, 'ac': 0, 'ad': 40, 'ae': 10})]
-    >>> there_is_a_tie(student_list_tmp)
-    [1, 1, 2, 2, 0]
-    """
-    start_end = [0 for i in range(len(students_object))]
-    counter = 1
-    for index in range(len(students_object) - 1):
-        if students_object[index].get_current_highest_bid() == students_object[index + 1].get_current_highest_bid():
-            start_end[index] = counter
-            start_end[index + 1] = counter
-
-        elif students_object[index].get_current_highest_bid() != students_object[index + 1].get_current_highest_bid() \
-                and start_end[index] != 0:
-            counter += 1
-
-    return start_end
-
-
-def sort_tie_breaker(student_object_try, check, course_name):
-    """
-    >>> student_list_tmp = [OOPStudent(1, 5, 1, {'aa': 0, 'ab': 0, 'ac': 0, 'ad': 0, 'ae': 0},{'aa': 10, 'ab': 0, 'ac': 20, 'ad': 30, 'ae': 0}),\
-OOPStudent(2, 5, 1, {'aa': 0, 'ab': 0, 'ac': 0, 'ad': 0, 'ae': 0}, {'aa': 25, 'ab': 0, 'ac': 0, 'ad': 30, 'ae': 12}),\
-OOPStudent(3, 5, 1, {'aa': 0, 'ab': 0, 'ac': 0, 'ad': 0, 'ae': 0}, {'aa': 0, 'ab': 12, 'ac': 0, 'ad': 40, 'ae': 10})]
-    >>> check_tmp = there_is_a_tie(student_list_tmp)
-    >>> student_list_tmp = sorted(student_list_tmp, key=lambda x: x.get_current_highest_bid(),reverse=True)
-    >>> sort_tie_breaker(student_list_tmp, check_tmp, 'ad')
-    >>> student_list_tmp[0].get_id()
-    3
-    >>> student_list_tmp[1].get_id()
-    1
-    >>> student_list_tmp[2].get_id()
-    2
->>> student_list_tmp = [OOPStudent(1, 5, 1, {'aa 1': 0, 'ab 1': 0, 'ac 1': 0, 'ad 1': 0, 'ae 1': 0},{'aa 1': 10, 'ab 1': 35, 'ac 1': 20, 'ad 1': 30, 'ae 1': 15}), \
-OOPStudent(2, 5, 1, {'aa 1': 0, 'ab 1': 0, 'ac 1': 0, 'ad 1': 0, 'ae 1': 0}, {'aa 1': 25, 'ab 1': 18, 'ac 1': 11, 'ad 1': 30, 'ae 1': 12}), \
-OOPStudent(3, 5, 1, {'aa 1': 0, 'ab 1': 0, 'ac 1': 0, 'ad 1': 0, 'ae 1': 0}, {'aa 1': 40, 'ab 1': 12, 'ac 1': 0, 'ad 1': 35, 'ae 1': 10})]
-    >>> student_list_tmp[0].got_enrolled('ab 1')
-    >>> student_list_tmp[2].got_enrolled('aa 1')
-    >>> check_tmp = there_is_a_tie(student_list_tmp)
-    >>> check_tmp
-    [1, 1, 0]
-    >>> student_list_tmp = sorted(student_list_tmp, key=lambda x: x.get_current_highest_bid(),reverse=True)
-    >>> sort_tie_breaker(student_list_tmp, check_tmp, 'ad 1')
-    >>> len(student_list_tmp)
-    3
-    >>> student_list_tmp[0].get_id()
-    3
-    >>> student_list_tmp[1].get_id()
-    1
-    >>> student_list_tmp[2].get_id()
-    2
-    >>> student_list_tmp = [OOPStudent(1, 5, 1, {'aa 1': 0, 'ab 1': 0, 'ac 1': 0, 'ad 1': 0, 'ae 1': 0},{'aa 1': 40, 'ab 1': 7, 'ac 1': 30, 'ad 1': 20, 'ae 1': 13}), \
-OOPStudent(2, 5, 1, {'aa 1': 0, 'ab 1': 0, 'ac 1': 0, 'ad 1': 0, 'ae 1': 0}, {'aa 1': 35, 'ab 1': 18, 'ac 1': 45, 'ad 1': 30, 'ae 1': 12}), \
-OOPStudent(3, 5, 1, {'aa 1': 0, 'ab 1': 0, 'ac 1': 0, 'ad 1': 0, 'ae 1': 0}, {'aa 1': 20, 'ab 1': 12, 'ac 1': 37, 'ad 1': 35, 'ae 1': 16}),\
-OOPStudent(4, 5, 1, {'aa 1': 0, 'ab 1': 0, 'ac 1': 0, 'ad 1': 0, 'ae 1': 0}, {'aa 1': 19, 'ab 1': 12, 'ac 1': 27, 'ad 1': 35, 'ae 1': 36}),\
-OOPStudent(5, 5, 1, {'aa 1': 0, 'ab 1': 0, 'ac 1': 0, 'ad 1': 0, 'ae 1': 0}, {'aa 1': 23, 'ab 1': 39, 'ac 1': 12, 'ad 1': 40, 'ae 1': 23})]
-    >>> student_list_tmp[0].got_enrolled('aa 1')
-    >>> student_list_tmp[1].got_enrolled('ac 1')
-    >>> student_list_tmp[1].got_enrolled('aa 1')
-    >>> student_list_tmp[2].got_enrolled('ac 1')
-    >>> student_list_tmp[3].got_enrolled('ae 1')
-    >>> check_tmp = there_is_a_tie(student_list_tmp)
-    >>> check_tmp
-    [1, 1, 2, 2, 0]
-    >>> student_list_tmp = sorted(student_list_tmp, key=lambda x: x.get_current_highest_bid(),reverse=True)
-    >>> sort_tie_breaker(student_list_tmp, check_tmp, 'ad 1')
-    >>> len(student_list_tmp)
-    5
-    >>> student_list_tmp[0].get_id()
-    5
-    >>> student_list_tmp[1].get_id()
-    3
-    >>> student_list_tmp[2].get_id()
-    4
-    >>> student_list_tmp[3].get_id()
-    1
-    >>> student_list_tmp[4].get_id()
-    2
-    """
-
-    max_value = max(check)
-    for i in range(1, max_value + 1):
-        min_index = check.index(i)
-        max_index = len(check) - check[::-1].index(i) - 1  # sort other way around and find the index of the element i
-        # for getting the last appearance of the i tie when 1 is the highest tie and max_value is the smallest tie
-        tie_student = student_object_try[min_index:max_index + 1]  # Take a sub list to activate on this sub list the sort function
-        fixed_tie_student = sorted(tie_student, key=lambda x: (x.get_number_of_enrollments(),
-            x.current_highest_ordinal(course_name)), reverse=False)
-        student_object_try[min_index:max_index + 1] = fixed_tie_student
-        # Insert back the sorted sub list into the list that
-        # indicate about the ties in the same places
-
 
 def calibration(student_list, elective_course_list):
     for student in student_list:
@@ -275,11 +163,12 @@ def calibration(student_list, elective_course_list):
             if course.get_capacity() == 0 and pre[0][0] == course.get_name():
                 course.enrolled_student_receive(pre[0][1])
                 student.delete_current_preference()
-                student.add_gap(False, pre[0][1])
+                student.add_gap(pre[0][1])
 
-            elif not check_overlap(student, course) and pre[0][0] == course.get_name():
+            elif check_overlap(student, course) and pre[0][0] == course.get_name():
                 student.delete_current_preference()
-                student.add_gap(False, pre[0][1])
+                student.add_gap(pre[0][1])
+
 
 def SP_Algorithm(student_list, elective_course_list, round):
     student_need_to_enroll = copy(student_list)
@@ -294,20 +183,23 @@ def SP_Algorithm(student_list, elective_course_list, round):
             course_name = tmp_preference[0]
             for course in elective_course_list:
                 if course.get_name() == course_name[0]:
-                    if check_overlap(student, course):
-                        if student.get_need_to_enroll() > 0 and course.get_capacity()>0:
+                    if student.get_need_to_enroll() > 0 and course.get_capacity()>0:
+                        if not check_overlap(student, course):
                             course.student_enrollment(student.get_id(),student)
                             student.got_enrolled(course.get_name())
 
 
                         else:
-                            course.enrolled_student_receive(tmp_preference[0][1])
                             student.delete_current_preference()
+                            student.add_gap(course_name[1])
                             need_to_break = True
                             break
 
+
                     else:
+                        course.enrolled_student_receive(course_name[1])
                         student.delete_current_preference()
+                        student.add_gap(course_name[1])
                         need_to_break = True
                         break
 
@@ -315,10 +207,6 @@ def SP_Algorithm(student_list, elective_course_list, round):
                 break
 
 
-def print_name(ov):
-    for key, value in list(ov.items()):
-        if value == 1:
-            print(key)
 
 
 def algorithm(student_list, elective_course_list, rounds=3):
@@ -335,14 +223,6 @@ OOPStudent(4, 3, 1, {'aa 1': 0, 'ab 1': 0, 'ac 1': 0, 'ad 1': 0, 'ae 1': 0}, {'a
     >>> tmp_course_list = [course1, course2, course3, course4, course5]
     >>> overlap_course(tmp_course_list)
     >>> algorithm(student_list_tmp, tmp_course_list)
-    >>> ov1 = student_list_tmp[0].get_enrolment_status()
-    >>> print_name(ov1)
-    >>> ov2 = student_list_tmp[1].get_enrolment_status()
-    >>> print_name(ov2)
-    >>> ov3 = student_list_tmp[2].get_enrolment_status()
-    >>> print_name(ov3)
-    >>> ov4 = student_list_tmp[3].get_enrolment_status()
-    >>> print_name(ov4)
     >>> student_list_tmp[0].get_cardinal_utility()
     780
     >>> student_list_tmp[1].get_cardinal_utility()

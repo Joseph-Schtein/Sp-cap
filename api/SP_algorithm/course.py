@@ -26,9 +26,8 @@ class OOPCourse:
         if self.capacity == 0 and given_rejected_bid > 0:
             if self.highest_bid_rejected < given_rejected_bid:
                 self.highest_bid_rejected = given_rejected_bid
-
-            for stu in self.students:
-                stu.receive_unspent_points(self.highest_bid_rejected, self.name)
+                for stu in self.students:
+                    stu.receive_unspent_points(self.highest_bid_rejected, self.name)
 
 
     def student_enrollment(self, student_name, student_element, given_rejected_bid=0):
@@ -47,8 +46,6 @@ class OOPCourse:
         else:
             raise Exception("Student ", student_name , "got to his capacity of enrollments for course: ", self.name)
 
-    def can_be_enroll(self, number_of_students):
-        return self.capacity >= number_of_students
 
     def set_overlap(self, overlap_list):
         self.overlap = deepcopy(overlap_list)
