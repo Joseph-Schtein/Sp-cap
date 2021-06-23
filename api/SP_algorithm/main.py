@@ -3,17 +3,46 @@ import logging
 from api.SP_algorithm.course import OOPCourse
 from api.SP_algorithm.course_group import Course_group
 from api.SP_algorithm.student import OOPStudent
-from api.models import Result, Course, Student
+from collections import OrderedDict
+logging.basicConfig(level=logging.DEBUG)
 
-#logging.basicConfig(level=logging.DEBUG)
+
 
 def check_overlap(student_object, course_object): # Check if there is an overlap course to the course we tried to enroll
+    """
+      >>> student = OOPStudent(1, 5, 1, {'aa':0, 'ab': 1, 'ac': 0, 'ad': 0, 'ae': 1}, {'aa':0, 'ab': 20, 'ac': 30, 'ad': 40, 'ae': 0})
+      >>> course = OOPCourse(1, 2, 'aa', 5, '12:00:00', '15:00:00', 'a', 'Monday', 'l', 1, True)
+      >>> overlap_tmp1 = OOPCourse(3, 5, 'ab', 5, '14:00:00', '17:00:00', 'b', 'Thursday', 'l', 1,\
+  True, [])
+      >>> overlap_tmp2 = OOPCourse(2, 4, 'ac', 5, '11:00:00', '13:00:00', 'a', 'Sunday', 'l', 1,\
+  True, [])
+      >>> overlap_tmp3 = OOPCourse(5, 7, 'ad', 5, '12:00:00', '16:00:00', 'a', 'Sunday', 'l', 1,\
+  True, [])
+      >>> overlap_tmp4 = OOPCourse(3, 6, 'ae', 5, '12:00:00', '16:00:00', 'a', 'Wednesday', 'l', 1,\
+  True, [])
+      >>> course.set_overlap([])
+      >>> check_overlap(student, course)
+      False
+      >>> student = OOPStudent(1, 5, 1, {'aa':0, 'ab': 1, 'ac': 0, 'ad': 0, 'ae': 1}, {'aa': 0, 'ab': 20, 'ac': 30, 'ad': 40, 'ae': 0})
+      >>> course = OOPCourse(1, 2, 'aa', 5, '12:00:00', '15:00:00', 'a', 'Monday', 'l', 1, True, [])
+      >>> overlap_tmp1 = OOPCourse(3, 5, 'ab', 5, '14:00:00', '17:00:00', 'b', 'Thursday', 'l', 1,\
+  True, [])
+      >>> overlap_tmp2 = OOPCourse(2, 4, 'ac', 5, '11:00:00', '13:00:00', 'a', 'Sunday', 'l', 1,\
+  True, [])
+      >>> overlap_tmp3 = OOPCourse(5, 7, 'ad', 5, '12:00:00', '16:00:00', 'a', 'Sunday', 'l', 1,\
+  True, [])
+      >>> overlap_tmp4 = OOPCourse(3, 6, 'ae', 5, '12:00:00', '14:00:00', 'a', 'Monday', 'l', 1,\
+  True, [course])
+      >>> course.set_overlap([overlap_tmp1, overlap_tmp2, overlap_tmp3, overlap_tmp4])
+      >>> check_overlap(student, course)
+      True
+      """
     overlap_courses = course_object.get_overlap_list()
     if len(overlap_courses) > 0:  # If there isn't overlap course we can simply say there isn't an overlap course
         output = False  # We'll presume there is no enrolled course such that is overlapped with course_object
         enroll_status = student_object.get_enrolment_status()
+        course_name = None
         for overlap in range(len(overlap_courses)):
-            course_name = None
             if not output:
                 course_name = overlap_courses[overlap]
                 check = enroll_status[course_name.get_name()]
@@ -22,8 +51,9 @@ def check_overlap(student_object, course_object): # Check if there is an overlap
                         output = True
                         break
 
-        logging.info("We found that course: ", course_object.get_name(), ", is overlap with: ", course_name, "\n"
-                     "for student: " , student_object.get_id())
+        if output:
+            logging.info("We found that course: %s , is overlap with: %s, for student: %s.", course_object.get_name(),
+                         course_name.get_name(), student_object.get_id())
         return output
 
 
@@ -31,58 +61,9 @@ def check_overlap(student_object, course_object): # Check if there is an overlap
         return False
 
 
-
-def TTC_calibration(student_list, elective_course_list):
-    for student in student_list:
-        pre = list(student.get_next_preference().items())
-        for course in elective_course_list:
-            if course.get_capacity() == 0 and pre[0][0] == course.get_name():
-                student.delete_current_preference()
-
-            elif check_overlap(student, course) and pre[0][0] == course.get_name():
-                student.delete_current_preference()
-
-
-
-def TTC_Algorithm(student_list, elective_course_list, round):
-    student_need_to_enroll = copy(student_list)
-    while len(student_need_to_enroll) > 0:
-        student_need_to_enroll = list(filter(lambda x: x.get_number_of_enrollments() < round, student_need_to_enroll))
-        student_need_to_enroll = list(filter(lambda x: x.get_current_highest_bid() != 0, student_need_to_enroll))
-        student_need_to_enroll = sorted(student_need_to_enroll, key=lambda x: x.get_current_highest_bid(), reverse=True)
-        need_to_break = False
-        for student in student_need_to_enroll:
-            try_to_enroll = student.get_next_preference()
-            tmp_preference = list(try_to_enroll.items())
-            course_name = tmp_preference[0]
-            for course in elective_course_list:
-                if course.get_name() == course_name[0]:
-                    if not check_overlap(student, course):
-                        if student.get_need_to_enroll() > 0 and course.get_capacity()>0:
-                            course.student_enrollment(student.get_id(),student)
-                            student.got_enrolled(course.get_name())
-                            s = Student.objects.get(student_id=student.get_id())
-                            c = Course.objects.get(course_id=course.get_id())
-                            Result.objects.create(course=c, student=s, selected=True)
-
-
-                        else:
-                            student.delete_current_preference()
-                            need_to_break = True
-                            break
-
-                    else:
-                        student.delete_current_preference()
-                        need_to_break = True
-                        break
-
-            if need_to_break:
-                break
-
-
 def SP_calibration(student_list, elective_course_list):
     for student in student_list:
-        pre = list(student.get_next_preference().items())
+        pre = list(student.get_next_preference(False).items())
         for course in elective_course_list:
             if course.get_capacity() == 0 and pre[0][0] == course.get_name():
                 course.enrolled_student_receive(pre[0][1])
@@ -111,37 +92,43 @@ def SP_Algorithm(student_list, elective_course_list, round):
                                         [x.get_current_highest_bid(), x.current_highest_ordinal()], reverse=True)
         need_to_break = False
         for student in student_need_to_enroll:
-            try_to_enroll = student.get_next_preference()
-            tmp_preference = list(try_to_enroll.items())
-            course_name = tmp_preference[0]
-            logging.info("The student ID is: ", student.get_id(), ", their most proffered course in current iteration"
-                         "\n is: ", course_name[0], ", and his\her bid amount is: ", course_name[1])
+            change_try_to_enroll, try_to_enroll= student.get_next_preference(True)
+            tmp_preference = list(change_try_to_enroll.items())
+            bid_data = tmp_preference[0]
+            original_bid = list(try_to_enroll.values())
+            if original_bid[0] != bid_data[1]:
+                logging.info("The student ID is: %s, he/she most preferred course in current iteration"
+                             "is: %s , and his\her bid amount is: %d, and the original bid is: %d"
+                             ,student.get_id(), bid_data[0], bid_data[1], original_bid[0])
+
+            else:
+                logging.info("The student ID is: %s, he/she most preferred course in current iteration"
+                             "is: %s , and his\her bid amount is: %d."
+                             ,student.get_id(), bid_data[0], bid_data[1])
             for course in elective_course_list:
-                if course.get_name() == course_name[0]:
-                    if student.get_need_to_enroll() > 0 and course.get_capacity()>0:
+                if course.get_name() == bid_data[0]:
+                    if course.get_capacity()>0:
                         if not check_overlap(student, course):
-                            logging.info("Student: ", student.get_id(), " is getting enroll to course name: "
-                                         , course_name[0])
+                            logging.info("Student: %s, is getting enroll to course name: %s"
+                                         ,student.get_id() ,bid_data[0])
                             course.student_enrollment(student.get_id(),student)
                             student.got_enrolled(course.get_name())
-                            #s = Student.objects.get(student_id=student.get_id())
-                            #c = Course.objects.get(course_id=course.get_id())
-                            #Result.objects.create(course=c, student=s, selected=True)
+
 
                         else:
                             student.delete_current_preference()
-                            student.add_gap(course_name[1])
+                            student.add_gap(bid_data[1])
                             need_to_break = True
                             break
 
 
                     else:
-                        logging.info("For course name: ", course_name[0], " With bid of: ", course_name[1],
-                                     ",\n reject  student with the ID: ", student.get_id(), ", because there is no"
-                                     "\n remaining capacity")
-                        course.enrolled_student_receive(course_name[1])
+                        logging.info("For course name: %s, With bid of: %d,"
+                                     "reject student with the ID: %s , because there is no"
+                                     "remaining capacity", bid_data[0], bid_data[1], student.get_id())
+                        course.enrolled_student_receive(bid_data[1])
                         student.delete_current_preference()
-                        student.add_gap(course_name[1])
+                        student.add_gap(bid_data[1])
                         need_to_break = True
                         break
 
@@ -150,6 +137,36 @@ def SP_Algorithm(student_list, elective_course_list, round):
 
 
 def algorithm(student_list, elective_course_list, rounds=5):
+    """
+      >>> student_list_tmp = [OOPStudent(1, 3, 1, {'aa 1': 0, 'ab 1': 0, 'ac 1': 0, 'ad 1': 0, 'ae 1': 0},{'aa 1': 400, 'ab 1': 150, 'ac 1': 230, 'ad 1': 200, 'ae 1': 20}), \
+OOPStudent(2, 3, 1, {'aa 1': 0, 'ab 1': 0, 'ac 1': 0, 'ad 1': 0, 'ae 1': 0}, {'aa 1': 245, 'ab 1': 252, 'ac 1': 256, 'ad 1': 246, 'ae 1': 1}), \
+OOPStudent(3, 3, 1, {'aa 1': 0, 'ab 1': 0, 'ac 1': 0, 'ad 1': 0, 'ae 1': 0}, {'aa 1': 243, 'ab 1': 230, 'ac 1': 240, 'ad 1': 245, 'ae 1': 42}),\
+OOPStudent(4, 3, 1, {'aa 1': 0, 'ab 1': 0, 'ac 1': 0, 'ad 1': 0, 'ae 1': 0}, {'aa 1': 251, 'ab 1': 235, 'ac 1': 242, 'ad 1': 201, 'ae 1': 71})]
+     >>> course1 = OOPCourse(1, 10, 'aa 1', 2, '09:00:00', '11:00:00', 'a', 'Monday',  'l', 1, True)
+     >>> course2 = OOPCourse(2, 7, 'ab 1', 3, '11:00:00', '14:00:00', 'a', 'Sunday',  'e', 1, True)
+     >>> course3 = OOPCourse(3, 8, 'ac 1', 3, '12:00:00', '16:00:00', 'a', 'Wednesday',  'r', 1, True)
+     >>> course4 = OOPCourse(4, 6, 'ad 1', 2, '10:00:00', '13:00:00', 'a', 'Monday',  'e', 1, True)
+     >>> course5 = OOPCourse(5, 9, 'ae 1', 2, '12:00:00', '15:00:00', 'a', 'Thursday',  'r', 1, True)
+     >>> tmp_course_list = [course1, course2, course3, course4, course5]
+     >>> overlap_course(tmp_course_list)
+     >>> algorithm(student_list_tmp, tmp_course_list)
+     >>> student_list_tmp[0].get_cardinal_utility()
+     780
+     >>> student_list_tmp[1].get_cardinal_utility()
+     754
+     >>> student_list_tmp[2].get_cardinal_utility()
+     527
+     >>> student_list_tmp[3].get_cardinal_utility()
+     557
+     >>> student_list_tmp[0].get_ordinal_utility()
+     11
+     >>> student_list_tmp[1].get_ordinal_utility()
+     12
+     >>> student_list_tmp[2].get_ordinal_utility()
+     9
+     >>> student_list_tmp[3].get_ordinal_utility()
+     9
+     """
     for i in range(1, rounds + 1):
         logging.info("Starting round number %d", i)
         SP_Algorithm(student_list, elective_course_list, i)
@@ -158,6 +175,55 @@ def algorithm(student_list, elective_course_list, rounds=5):
 
 # Changes the orderDic of courses that we getting from the server and convert to an object OOPCourse
 def order_course_data(raw_course_list):
+    """
+    >>> course_data =  order_course_data([OrderedDict([('id', 10), ('name', 'הסתברות למדעי המחשב 2'), ('is_elective', False),\
+('office', 1), ('courses', [OrderedDict([('course_id', '1'), ('Semester', 'א'), ('lecturer', "פרופ' חפץ דן"),\
+('capacity', 30), ('day', 'א'), ('time_start', '09:00:00'), ('time_end', '11:00:00'), \
+('course_group', 'הסתברות למדעי המחשב 210')]),\
+OrderedDict([('course_id', '2'), ('Semester', 'א'), ('lecturer', "פרופ' חפץ דן"), ('capacity', 30),\
+('day', 'ב'), ('time_start', '09:00:00'), ('time_end', '11:00:00'), \
+('course_group','הסתברות למדעי המחשב 210')])])])\
+, OrderedDict([('id', 11), ('name', 'חישוביות'), ('is_elective', False), ('office', 1),\
+('courses', [OrderedDict([('course_id', '3'), ('Semester', 'א'), ('lecturer', 'ד"ר פסקין צרניאבסקי ענת'),\
+('capacity', 30), ('day', 'ב'), ('time_start', '15:00:00'), ('time_end', '18:00:00'),\
+('course_group', 'חישוביות11')]), OrderedDict([('course_id', '4'), ('Semester', 'א'),\
+('lecturer', 'ד"ר פסקין צרניאבסקי ענת'), ('capacity', 30), ('day', 'ג'), ('time_start', '11:00:00'),\
+('time_end', '14:00:00'), ('course_group', 'חישוביות11')])])])])
+    >>> course_data[0][0].get_name()
+    'הסתברות למדעי המחשב 2'
+    >>> course_data[2][2].get_name()
+    'חישוביות 1'
+    >>> len(course_data[1])
+    0
+    >>> len(course_data[2])
+    4
+    >>> len(course_data[0])
+    2
+    >>> course_data =  order_course_data([OrderedDict([('id', 10), ('name', 'הסתברות למדעי המחשב 2'),\
+('is_elective', False), ('office', 1),\
+('courses', [OrderedDict([('course_id', '1'), ('Semester', 'א'), ('lecturer', "פרופ' חפץ דן"), ('capacity', 30),\
+('day', 'א'), ('time_start', '09:00:00'), ('time_end', '11:00:00'), ('course_group', 'הסתברות למדעי המחשב 210')]),\
+OrderedDict([('course_id', '2'), ('Semester', 'א'), ('lecturer', "פרופ' חפץ דן"), ('capacity', 30), ('day', 'ב'),\
+('time_start', '09:00:00'), ('time_end', '11:00:00'), ('course_group', 'הסתברות למדעי המחשב 210')])])]),\
+OrderedDict([('id', 11), ('name', 'חישוביות'), ('is_elective', False), ('office', 1),\
+('courses', [OrderedDict([('course_id', '3'), ('Semester', 'א'), ('lecturer', 'ד"ר פסקין צרניאבסקי ענת'),\
+('capacity', 30), ('day', 'ב'), ('time_start', '15:00:00'), ('time_end', '18:00:00'),\
+('course_group', 'חישוביות11')]), OrderedDict([('course_id', '4'), ('Semester', 'א'),\
+('lecturer', 'ד"ר פסקין צרניאבסקי ענת'), ('capacity', 30), ('day', 'ג'), ('time_start', '11:00:00'),\
+('time_end', '14:00:00'), ('course_group', 'חישוביות11')])])]),\
+OrderedDict([('id', 28), ('name', 'מבוא לקריפטוגרפיה'), ('is_elective', True), ('office', 1),\
+('courses', [OrderedDict([('course_id', '71'),  ('Semester', 'א'), ('lecturer', '\tד"ר פסקין צרניאבסקי ענת'),\
+('capacity', 10), ('day', 'א'), ('time_start', '12:00:00'), ('time_end', '15:00:00'),\
+('course_group', 'מבוא לקריפטוגרפיה28')])])])])
+    >>> course_data[2][0].get_start()
+    '09:00:00'
+    >>> course_data[1][0].get_name()
+    'מבוא לקריפטוגרפיה 1'
+    >>> course_data[2][2].get_name()
+    'חישוביות 1'
+    >>> len(course_data[1])
+    1
+   """
     logging.info(
         "Create the course list that will contain the course data that "
         "the program get from the server about courses and group courses")
@@ -174,6 +240,7 @@ def order_course_data(raw_course_list):
     for dic in raw_course_list:
         id_group = int(dic['id'])
         name = dic['name']
+        name = name.replace('\t', '')
         id_office = int(dic['office'])
         elect = dic['is_elective']
 
@@ -217,6 +284,49 @@ def overlap_course(course_list):
     # the course is ending while other course has been start and not finish yet or the starting and ending
     # time is the same. this is the three option that if one of that happened we add the other course
     # to the list of overlap courses the course we checking currently
+
+    """
+    >>> courses = [OOPCourse(1, 10, 'a', 30, '09:00:00', '11:00:00', 'a', 'monday',  'l', 1, False)]
+    >>> courses.append(OOPCourse(2, 7, 'b', 25, '11:00:00', '14:00:00', 'b', 'Thursday',  'e', 1, False))
+    >>> courses.append(OOPCourse(3, 5, 'c', 25, '10:00:00', '13:00:00', 'c', 'Thursday',  'r', 2, False))
+    >>> overlap_course(courses)
+    >>> courses[0].get_overlap_list()
+    []
+    >>> courses[1].get_overlap_list()
+    []
+    >>> courses[2].get_overlap_list()
+    []
+    >>> courses = [OOPCourse(1, 10, 'aa', 30, '09:00:00', '11:00:00', 'a', 'monday',  'l', 1, False)]
+    >>> courses.append(OOPCourse(2, 7, 'ab', 25, '11:00:00', '14:00:00', 'a', 'Thursday',  'e', 1, False))
+    >>> courses.append(OOPCourse(3, 5, 'ac', 25, '10:00:00', '13:00:00', 'a', 'Thursday',  'r', 1, False))
+    >>> overlap_course(courses)
+    >>> courses[0].get_overlap_list()
+    []
+    >>> courses[1].get_overlap_list()[0].get_name()
+    'ac'
+    >>> courses[2].get_overlap_list()[0].get_name()
+    'ab'
+    >>> courses = [OOPCourse(1, 10, 'aa', 30, '09:00:00', '11:00:00', 'a', 'monday',  'l', 1, False)]
+    >>> courses.append(OOPCourse(2, 7, 'ab', 25, '11:00:00', '14:00:00', 'b', 'monday',  'e', 1, False))
+    >>> courses.append(OOPCourse(3, 5, 'ac', 25, '10:00:00', '13:00:00', 'c', 'monday',  'r', 1, False))
+    >>> overlap_course(courses)
+    >>> courses[0].get_overlap_list()
+    []
+    >>> courses[1].get_overlap_list()
+    []
+    >>> courses[2].get_overlap_list()
+    []
+    >>> courses = [OOPCourse(1, 10, 'aa', 30, '09:00:00', '11:00:00', 'a', 'monday',  'l', 1, False)]
+    >>> courses.append(OOPCourse(2, 7, 'ab', 25, '11:00:00', '14:00:00', 'a', 'monday',  'e', 1, False))
+    >>> courses.append(OOPCourse(3, 5, 'ac', 25, '14:00:00', '16:00:00', 'a', 'monday',  'r', 1, False))
+    >>> overlap_course(courses)
+    >>> courses[0].get_overlap_list()
+    []
+    >>> courses[1].get_overlap_list()
+    []
+    >>> courses[2].get_overlap_list()
+    []
+    """
 
     for i in range(len(course_list)):
         overlap_list_for_i = []
@@ -272,8 +382,6 @@ def order_student_data(raw_student_list, raw_rank_list, elective_course_list, co
             student_id = int(rank_dic['student'][0:9]) # Taking the student id for checking if is the same student
             course_id = int(rank_dic['course'])
             rank = int(rank_dic['rank'])
-            #if rank == 0:
-            #    rank += 1
 
             if student_id == id:
                 for course in elective_course_list:
@@ -292,15 +400,13 @@ def order_student_data(raw_student_list, raw_rank_list, elective_course_list, co
 
 
 def main(raw_student_list, raw_course_list, raw_rank_list):
+
+
     print(raw_student_list)
     print(raw_course_list)
     print(raw_rank_list)
 
     course_group_list, course_elect_list, course_mandatory_list = order_course_data(raw_course_list)
-    # logging.info("Sorting the elective courses into office according to the number of offices")
-    # set_of_offices_elective_courses = sort_by_office_courses(course_elect_list, num_offices)
-    # logging.info("Sorting the mandatory courses into office according to the number of offices")
-    # set_of_offices_mandatory_courses = sort_by_office_courses(course_mandatory_list, num_offices)
 
     logging.info("Now merging the elective and mandatory courses for checking possible overlap while maintaining the"
                  "separation of courses according to the office number")
@@ -322,6 +428,7 @@ def main(raw_student_list, raw_course_list, raw_rank_list):
     logging.info("Activate the algorithm")
     algorithm(student_list, course_elect_list)
 
+    '''
     for i in student_list:
         i.to_string()
         print()
@@ -329,6 +436,7 @@ def main(raw_student_list, raw_course_list, raw_rank_list):
     for i in course_elect_list:
         i.to_string()
         print()
+    '''
 
     boolean_utility = 0
     cardinal_utility = 0
@@ -338,6 +446,7 @@ def main(raw_student_list, raw_course_list, raw_rank_list):
     min_ordinal = 0
     max_ordinal = 0
     for i in student_list:
+        to_count = True
         boolean_utility += i.get_number_of_enrollments()
         cardinal_utility += i.get_cardinal_utility()
 
@@ -345,7 +454,11 @@ def main(raw_student_list, raw_course_list, raw_rank_list):
             max_cardinal = i.get_cardinal_utility()
 
 
-        if min_cardinal > i.get_cardinal_utility() > 200 or min_cardinal == 0:
+        if min_cardinal == 0 and i.get_cardinal_utility() > 200:
+            to_count = False
+            min_cardinal = i.get_cardinal_utility()
+
+        elif min_cardinal > i.get_cardinal_utility() > 200:
             min_cardinal = i.get_cardinal_utility()
 
 
@@ -354,12 +467,20 @@ def main(raw_student_list, raw_course_list, raw_rank_list):
         if max_ordinal < i.get_ordinal_utility():
             max_ordinal = i.get_ordinal_utility()
 
-        if min_ordinal > i.get_ordinal_utility() or min_ordinal == 0:
+        if (min_ordinal > i.get_ordinal_utility() or min_ordinal == 0) and to_count:
              min_ordinal = i.get_ordinal_utility()
 
 
-    print("Boolean utility is: ", boolean_utility)
-    print("Ordinal utility is: ", ordinal_utility)
-    print("Cardinal utility is: ", cardinal_utility)
-    print("Cardinal range is: ", max_cardinal-min_cardinal, ", When the max is: ", max_cardinal)
-    print("Ordinal range is: ", max_ordinal-min_ordinal, ", When the max is: ", max_ordinal)
+    logging.info("Boolean utility is: %d", boolean_utility)
+    logging.info("Ordinal utility is: %d", ordinal_utility)
+    logging.info("Cardinal utility is: %d", cardinal_utility)
+    logging.info("Cardinal range is: %d, When the max is: %d", max_cardinal-min_cardinal, max_cardinal)
+    logging.info("Ordinal range is: %d, When the max is: %d", max_ordinal-min_ordinal, max_ordinal)
+
+    return student_list, course_elect_list
+
+
+if __name__ == "__main__":
+    import doctest
+    logging.basicConfig(level=logging.DEBUG)
+    doctest.testmod()

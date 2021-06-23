@@ -32,7 +32,7 @@ class OOPCourse:
 
     def student_enrollment(self, student_name, student_element, given_rejected_bid=0):
         if self.capacity > 0 and student_name not in self.students and student_element.get_need_to_enroll() > 0:
-            logging.info("For course %s we enroll student with the ID %s", self.name, student_name)
+            #logging.info("For course %s we enroll student with the ID %s", self.name, student_name)
             self.capacity -= 1
             self.students.append(student_element)
             self.students_name.append(student_name)
